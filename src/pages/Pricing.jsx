@@ -74,8 +74,8 @@ export default function Pricing() {
   }
 
   // This actually upgrades the user's plan in auth state + localStorage
-  function activatePro() {
-    upgradePro(); // saves plan:"pro" to sf_plan key — survives logout
+  async function activatePro() {
+    await upgradePro(); // saves plan:"pro" to Firestore
     setSuccessModal(false);
     navigate("/dashboard");
   }

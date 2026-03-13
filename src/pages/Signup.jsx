@@ -6,10 +6,11 @@ const GOALS = ["Get a dev job", "Freelance", "Build my own product", "Learn for 
 
 export default function Signup() {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { signup, loginWithGoogle } = useAuth();
   const [step, setStep] = useState(1);
   const [form, setForm] = useState({ name: "", email: "", password: "", goal: "" });
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState("");
   const [showPass, setShowPass] = useState(false);
 
@@ -25,16 +26,40 @@ export default function Signup() {
     setError(""); setStep(2);
   }
 
-  function handleStep2(e) {
+  async function handleStep2(e) {
     e.preventDefault();
     if (!form.goal) { setError("Please select your goal."); return; }
     setLoading(true);
-    setTimeout(() => {
-      const existing = JSON.parse(localStorage.getItem("sf_user") || "{}");
-      login({ name: form.name, email: form.email, plan: existing.plan || "free", goal: form.goal });
-      setLoading(false);
+    try {
+      await signup(form.name, form.email, form.password, form.goal);
       navigate("/dashboard");
-    }, 1500);
+    } catch (err) {
+      setError(friendlyError(err.code));
+      setStep(1);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleGoogle() {
+    setGoogleLoading(true);
+    try {
+      await loginWithGoogle();
+      navigate("/dashboard");
+    } catch (err) {
+      setError(friendlyError(err.code));
+    } finally {
+      setGoogleLoading(false);
+    }
+  }
+
+  function friendlyError(code) {
+    switch (code) {
+      case "auth/email-already-in-use": return "An account with this email already exists.";
+      case "auth/invalid-email": return "Invalid email address.";
+      case "auth/weak-password": return "Password should be at least 6 characters.";
+      default: return "Something went wrong. Please try again.";
+    }
   }
 
   const strength = form.password.length === 0 ? 0 : form.password.length < 6 ? 1 : form.password.length < 10 ? 2 : 3;
@@ -54,6 +79,7 @@ export default function Signup() {
         .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
         .social-btn { flex: 1; background: #161b22; border: 1px solid #30363d; color: #e6edf3; font-family: inherit; font-size: 13px; padding: 10px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
         .social-btn:hover { border-color: #58a6ff; }
+        .social-btn:disabled { opacity: 0.5; cursor: not-allowed; }
         .link-btn { background: none; border: none; color: #58a6ff; font-family: inherit; font-size: 13px; cursor: pointer; padding: 0; }
         .show-btn { background: none; border: none; color: #8b949e; font-family: inherit; font-size: 12px; cursor: pointer; padding: 0; position: absolute; right: 14px; top: 50%; transform: translateY(-50%); }
         .goal-btn { width: 100%; background: #0d1117; border: 1px solid #30363d; color: #8b949e; font-family: inherit; font-size: 13px; padding: 13px 16px; border-radius: 8px; cursor: pointer; text-align: left; transition: all 0.2s; }
@@ -74,7 +100,6 @@ export default function Signup() {
 
       <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "40px 16px" }}>
         <div style={{ width: "100%", maxWidth: 420 }}>
-          {/* Step indicator */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 28 }}>
             {[1, 2].map(s => (
               <div key={s} style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -96,8 +121,10 @@ export default function Signup() {
             {step === 1 && (
               <div className="slide-in">
                 <div style={{ display: "flex", gap: 10, marginBottom: 24 }}>
-                  <button className="social-btn"><span>G</span> Google</button>
-                  <button className="social-btn"><span>⬡</span> GitHub</button>
+                  <button className="social-btn" onClick={handleGoogle} disabled={googleLoading}>
+                    <span>G</span> {googleLoading ? "Signing in..." : "Google"}
+                  </button>
+                  <button className="social-btn" disabled><span>⬡</span> GitHub</button>
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
                   <div style={{ flex: 1, height: 1, background: "#21262d" }} />

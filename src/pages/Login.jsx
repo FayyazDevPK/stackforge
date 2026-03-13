@@ -4,9 +4,10 @@ import { useAuth } from "../AuthContext";
 
 export default function Login() {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, loginWithGoogle } = useAuth();
   const [form, setForm] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState("");
   const [showPass, setShowPass] = useState(false);
 
@@ -15,15 +16,41 @@ export default function Login() {
     setError("");
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
     if (!form.email || !form.password) { setError("Please fill in all fields."); return; }
     setLoading(true);
-    setTimeout(() => {
-      login({ name: "Fayyaz", email: form.email, plan: "free" }); // AuthContext.login() auto-reads sf_plan
-      setLoading(false);
+    try {
+      await login(form.email, form.password);
       navigate("/dashboard");
-    }, 1500);
+    } catch (err) {
+      setError(friendlyError(err.code));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleGoogle() {
+    setGoogleLoading(true);
+    try {
+      await loginWithGoogle();
+      navigate("/dashboard");
+    } catch (err) {
+      setError(friendlyError(err.code));
+    } finally {
+      setGoogleLoading(false);
+    }
+  }
+
+  function friendlyError(code) {
+    switch (code) {
+      case "auth/user-not-found": return "No account found with this email.";
+      case "auth/wrong-password": return "Incorrect password.";
+      case "auth/invalid-email": return "Invalid email address.";
+      case "auth/too-many-requests": return "Too many attempts. Try again later.";
+      case "auth/invalid-credential": return "Invalid email or password.";
+      default: return "Something went wrong. Please try again.";
+    }
   }
 
   return (
@@ -39,6 +66,7 @@ export default function Login() {
         .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
         .social-btn { flex: 1; background: #161b22; border: 1px solid #30363d; color: #e6edf3; font-family: inherit; font-size: 13px; padding: 10px; border-radius: 8px; cursor: pointer; transition: border-color 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
         .social-btn:hover { border-color: #58a6ff; }
+        .social-btn:disabled { opacity: 0.5; cursor: not-allowed; }
         .link-btn { background: none; border: none; color: #58a6ff; font-family: inherit; font-size: 13px; cursor: pointer; padding: 0; }
         .link-btn:hover { text-decoration: underline; }
         .show-btn { background: none; border: none; color: #8b949e; font-family: inherit; font-size: 12px; cursor: pointer; padding: 0; position: absolute; right: 14px; top: 50%; transform: translateY(-50%); }
@@ -63,8 +91,12 @@ export default function Login() {
 
           <div style={{ background: "#161b22", border: "1px solid #21262d", borderRadius: 14, padding: "32px 28px" }}>
             <div style={{ display: "flex", gap: 10, marginBottom: 24 }}>
-              <button className="social-btn"><span>G</span> Google</button>
-              <button className="social-btn"><span>⬡</span> GitHub</button>
+              <button className="social-btn" onClick={handleGoogle} disabled={googleLoading}>
+                <span>G</span> {googleLoading ? "Signing in..." : "Google"}
+              </button>
+              <button className="social-btn" disabled>
+                <span>⬡</span> GitHub
+              </button>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
               <div style={{ flex: 1, height: 1, background: "#21262d" }} />
@@ -86,9 +118,7 @@ export default function Login() {
               <div style={{ textAlign: "right", marginBottom: 20 }}>
                 <button type="button" className="link-btn" style={{ fontSize: 12 }}>Forgot password?</button>
               </div>
-              {error && (
-                <div style={{ background: "#f0626222", border: "1px solid #f0626244", borderRadius: 8, padding: "10px 14px", marginBottom: 16, fontSize: 12, color: "#f06262" }}>⚠ {error}</div>
-              )}
+              {error && <div style={{ background: "#f0626222", border: "1px solid #f0626244", borderRadius: 8, padding: "10px 14px", marginBottom: 16, fontSize: 12, color: "#f06262" }}>⚠ {error}</div>}
               <button className="btn-primary" type="submit" disabled={loading}>
                 {loading ? <span className="spinner" /> : "Log In →"}
               </button>
