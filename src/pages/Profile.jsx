@@ -1,19 +1,23 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../AuthContext";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import { db } from "../firebase";
 
 export default function Profile() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const isPro = user?.plan === "pro";
+
   const [tab, setTab] = useState("profile");
   const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
-    name: "Fayyaz",
-    email: "fayyaz@example.com",
-    username: "fayyaz_dev",
-    bio: "Full stack developer in progress. Building StackForge.",
-    location: "Karachi, Pakistan",
+    name: "",
+    email: "",
+    username: "",
+    bio: "",
+    location: "",
     website: "",
     goal: "Get a dev job",
     level: "Beginner",
@@ -23,10 +27,77 @@ export default function Profile() {
     newReplies: true, announcements: true, weeklyDigest: true, promos: false,
   });
 
-  function handleSave() {
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2500);
+  // Load real user data from Firestore on mount
+  useEffect(() => {
+    if (!user) return;
+    async function loadProfile() {
+      const docRef = doc(db, "users", user.uid);
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        setForm({
+          name: data.name || user.name || "",
+          email: data.email || user.email || "",
+          username: data.username || "",
+          bio: data.bio || "",
+          location: data.location || "",
+          website: data.website || "",
+          goal: data.goal || "Get a dev job",
+          level: data.level || "Beginner",
+        });
+        if (data.notifications) setNotifications(data.notifications);
+      } else {
+        // First time — pre-fill from auth
+        setForm(f => ({
+          ...f,
+          name: user.name || "",
+          email: user.email || "",
+        }));
+      }
+    }
+    loadProfile();
+  }, [user]);
+
+  // Save profile to Firestore
+  async function handleSave() {
+    if (!user) return;
+    setSaving(true);
+    try {
+      await setDoc(doc(db, "users", user.uid), {
+        name: form.name,
+        email: form.email,
+        username: form.username,
+        bio: form.bio,
+        location: form.location,
+        website: form.website,
+        goal: form.goal,
+        level: form.level,
+      }, { merge: true });
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2500);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSaving(false);
+    }
   }
+
+  // Save notifications to Firestore
+  async function handleSaveNotifications() {
+    if (!user) return;
+    setSaving(true);
+    try {
+      await setDoc(doc(db, "users", user.uid), { notifications }, { merge: true });
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2500);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  const displayName = form.name || user?.name || "User";
 
   return (
     <div style={{ fontFamily: "'JetBrains Mono', monospace", background: "#0d1117", minHeight: "100vh", color: "#e6edf3", overflowX: "hidden" }}>
@@ -49,22 +120,21 @@ export default function Profile() {
         .select-field { width: 100%; background: #0d1117; border: 1px solid #21262d; border-radius: 8px; padding: 11px 14px; color: #e6edf3; font-family: inherit; font-size: 13px; outline: none; cursor: pointer; }
         .btn-primary { background: linear-gradient(135deg, #58a6ff, #1f6feb); border: none; color: white; font-family: inherit; font-size: 13px; font-weight: 700; padding: 10px 24px; border-radius: 8px; cursor: pointer; transition: opacity 0.2s; }
         .btn-primary:hover { opacity: 0.88; }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
         .btn-pro { background: linear-gradient(135deg, #f79d65, #f06292); border: none; color: white; font-family: inherit; font-size: 13px; font-weight: 700; padding: 10px 24px; border-radius: 8px; cursor: pointer; }
         .btn-danger { background: none; border: 1px solid #f0626244; color: #f06262; font-family: inherit; font-size: 13px; padding: 10px 24px; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
         .btn-danger:hover { background: #f0626211; }
         .toggle-wrap { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid #21262d; }
         .toggle-wrap:last-child { border-bottom: none; }
-        .toggle { width: 40px; height: 22px; border-radius: 11px; position: relative; cursor: pointer; transition: background 0.2s; border: none; flex-shrink: 0; }
-        .toggle-knob { position: absolute; width: 16px; height: 16px; border-radius: 50%; background: white; top: 3px; transition: left 0.2s; }
-        .label { font-size: 12px; color: "#8b949e"; display: block; margin-bottom: 6px; }
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-        .save-toast { position: fixed; bottom: 24px; right: 24px; background: "#238636"; border: "1px solid #2ea043"; color: white; padding: "12px 20px"; border-radius: 8px; font-size: 13px; font-weight: 600; z-index: 300; }
         @media (max-width: 600px) {
           .form-row { grid-template-columns: 1fr !important; }
           .top-bar-pad { padding: 0 16px !important; }
           .page-pad { padding: 20px 16px !important; }
           .tab-scroll { overflow-x: auto; }
         }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .spinner { width: 14px; height: 14px; border: 2px solid #ffffff44; border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; display: inline-block; }
       `}</style>
 
       {/* Top Bar */}
@@ -81,11 +151,13 @@ export default function Profile() {
         {/* Avatar + name */}
         <div style={{ display: "flex", alignItems: "center", gap: 20, marginBottom: 32, flexWrap: "wrap" }}>
           <div style={{ width: 72, height: 72, borderRadius: "50%", background: "linear-gradient(135deg,#58a6ff,#1f6feb)", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Space Grotesk',sans-serif", fontWeight: 800, fontSize: 28, flexShrink: 0 }}>
-            {(user?.name || "U").charAt(0).toUpperCase()}
+            {displayName.charAt(0).toUpperCase()}
           </div>
           <div>
-            <h1 style={{ fontFamily: "'Space Grotesk',sans-serif", fontSize: 22, fontWeight: 800, marginBottom: 4 }}>{user?.name || form.name}</h1>
-            <div style={{ fontSize: 12, color: "#8b949e", marginBottom: 8 }}>@{form.username} · {form.location}</div>
+            <h1 style={{ fontFamily: "'Space Grotesk',sans-serif", fontSize: 22, fontWeight: 800, marginBottom: 4 }}>{displayName}</h1>
+            <div style={{ fontSize: 12, color: "#8b949e", marginBottom: 8 }}>
+              {form.username ? `@${form.username}` : user?.email} {form.location ? `· ${form.location}` : ""}
+            </div>
             {isPro
               ? <span style={{ fontSize: 11, background: "#f79d6522", color: "#f79d65", border: "1px solid #f79d6533", padding: "3px 10px", borderRadius: 20, fontWeight: 700 }}>✦ Pro Plan</span>
               : <span style={{ fontSize: 11, background: "#21262d", color: "#8b949e", padding: "3px 10px", borderRadius: 20 }}>Free Plan</span>
@@ -109,22 +181,22 @@ export default function Profile() {
           ))}
         </div>
 
-        {/* ── PROFILE TAB ── */}
+        {/* PROFILE TAB */}
         {tab === "profile" && (
           <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
             <div className="form-row">
               <div>
                 <label style={{ fontSize: 12, color: "#8b949e", display: "block", marginBottom: 6 }}>Full Name</label>
-                <input className="input-field" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
+                <input className="input-field" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="Your full name" />
               </div>
               <div>
                 <label style={{ fontSize: 12, color: "#8b949e", display: "block", marginBottom: 6 }}>Username</label>
-                <input className="input-field" value={form.username} onChange={e => setForm({ ...form, username: e.target.value })} />
+                <input className="input-field" value={form.username} onChange={e => setForm({ ...form, username: e.target.value })} placeholder="your_username" />
               </div>
             </div>
             <div>
               <label style={{ fontSize: 12, color: "#8b949e", display: "block", marginBottom: 6 }}>Email Address</label>
-              <input className="input-field" type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} />
+              <input className="input-field" type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder="you@example.com" />
             </div>
             <div>
               <label style={{ fontSize: 12, color: "#8b949e", display: "block", marginBottom: 6 }}>Bio</label>
@@ -155,12 +227,14 @@ export default function Profile() {
               </div>
             </div>
             <div style={{ paddingTop: 6 }}>
-              <button className="btn-primary" onClick={handleSave}>Save Changes</button>
+              <button className="btn-primary" onClick={handleSave} disabled={saving}>
+                {saving ? <span className="spinner" /> : "Save Changes"}
+              </button>
             </div>
           </div>
         )}
 
-        {/* ── PASSWORD TAB ── */}
+        {/* PASSWORD TAB */}
         {tab === "password" && (
           <div style={{ display: "flex", flexDirection: "column", gap: 16, maxWidth: 400 }}>
             <div>
@@ -175,11 +249,11 @@ export default function Profile() {
               <label style={{ fontSize: 12, color: "#8b949e", display: "block", marginBottom: 6 }}>Confirm New Password</label>
               <input className="input-field" type="password" placeholder="Repeat new password" value={passwords.confirm} onChange={e => setPasswords({ ...passwords, confirm: e.target.value })} />
             </div>
-            <button className="btn-primary" style={{ marginTop: 6 }} onClick={handleSave}>Update Password</button>
+            <button className="btn-primary" style={{ marginTop: 6 }}>Update Password</button>
           </div>
         )}
 
-        {/* ── NOTIFICATIONS TAB ── */}
+        {/* NOTIFICATIONS TAB */}
         {tab === "notifications" && (
           <div style={{ background: "#161b22", border: "1px solid #21262d", borderRadius: 12, padding: "8px 20px" }}>
             {[
@@ -194,31 +268,32 @@ export default function Profile() {
                   <div style={{ fontSize: 11, color: "#8b949e" }}>{item.sub}</div>
                 </div>
                 <button
-                  className="toggle"
-                  style={{ background: notifications[item.key] ? "#238636" : "#21262d" }}
+                  style={{ width: 40, height: 22, borderRadius: 11, position: "relative", cursor: "pointer", transition: "background 0.2s", border: "none", flexShrink: 0, background: notifications[item.key] ? "#238636" : "#21262d" }}
                   onClick={() => setNotifications({ ...notifications, [item.key]: !notifications[item.key] })}
                 >
-                  <div className="toggle-knob" style={{ left: notifications[item.key] ? "21px" : "3px" }} />
+                  <div style={{ position: "absolute", width: 16, height: 16, borderRadius: "50%", background: "white", top: 3, transition: "left 0.2s", left: notifications[item.key] ? "21px" : "3px" }} />
                 </button>
               </div>
             ))}
             <div style={{ paddingTop: 16, paddingBottom: 8 }}>
-              <button className="btn-primary" onClick={handleSave}>Save Preferences</button>
+              <button className="btn-primary" onClick={handleSaveNotifications} disabled={saving}>
+                {saving ? <span className="spinner" /> : "Save Preferences"}
+              </button>
             </div>
           </div>
         )}
 
-        {/* ── DANGER ZONE ── */}
+        {/* DANGER ZONE TAB */}
         {tab === "danger" && (
           <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
             <div style={{ background: "#161b22", border: "1px solid #21262d", borderRadius: 12, padding: "20px" }}>
               <h3 style={{ fontFamily: "'Space Grotesk',sans-serif", fontSize: 15, fontWeight: 700, marginBottom: 6 }}>Log out of all devices</h3>
-              <p style={{ fontSize: 13, color: "#8b949e", marginBottom: 14, lineHeight: 1.6 }}>This will end all active sessions on other devices. You will stay logged in here.</p>
-              <button className="btn-danger">Log Out All Devices</button>
+              <p style={{ fontSize: 13, color: "#8b949e", marginBottom: 14, lineHeight: 1.6 }}>This will end all active sessions on other devices.</p>
+              <button className="btn-danger" onClick={() => { logout(); navigate("/"); }}>Log Out</button>
             </div>
             <div style={{ background: "#161b22", border: "1px solid #f0626233", borderRadius: 12, padding: "20px" }}>
               <h3 style={{ fontFamily: "'Space Grotesk',sans-serif", fontSize: 15, fontWeight: 700, marginBottom: 6, color: "#f06262" }}>Delete Account</h3>
-              <p style={{ fontSize: 13, color: "#8b949e", marginBottom: 14, lineHeight: 1.6 }}>Permanently delete your account and all progress. This action cannot be undone.</p>
+              <p style={{ fontSize: 13, color: "#8b949e", marginBottom: 14, lineHeight: 1.6 }}>Permanently delete your account and all progress. Cannot be undone.</p>
               <button className="btn-danger" style={{ borderColor: "#f0626266" }}>Delete My Account</button>
             </div>
           </div>
