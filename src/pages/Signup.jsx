@@ -48,7 +48,6 @@ export default function Signup() {
       navigate("/dashboard");
     } catch (err) {
       setError(friendlyError(err.code));
-    } finally {
       setGoogleLoading(false);
     }
   }
@@ -122,7 +121,7 @@ export default function Signup() {
               <div className="slide-in">
                 <div style={{ display: "flex", gap: 10, marginBottom: 24 }}>
                   <button className="social-btn" onClick={handleGoogle} disabled={googleLoading}>
-                    <span>G</span> {googleLoading ? "Signing in..." : "Google"}
+                    <span>G</span> {googleLoading ? "Redirecting..." : "Google"}
                   </button>
                   <button className="social-btn" disabled><span>⬡</span> GitHub</button>
                 </div>

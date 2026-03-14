@@ -3,8 +3,7 @@ import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
-  signInWithRedirect,
-  getRedirectResult,
+  signInWithPopup,
   signOut,
   updateProfile,
 } from "firebase/auth";
@@ -18,16 +17,6 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Handle Google redirect result when user comes back
-    getRedirectResult(auth).then(async (result) => {
-      if (result?.user) {
-        await createUserDocIfNew(result.user);
-      }
-    }).catch((err) => {
-      console.error("Redirect error:", err);
-    });
-
-    // Listen to auth state
     const unsub = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         const docRef = doc(db, "users", firebaseUser.uid);
@@ -48,7 +37,6 @@ export function AuthProvider({ children }) {
     return unsub;
   }, []);
 
-  // Create user doc only if new user
   async function createUserDocIfNew(firebaseUser, extra = {}) {
     const docRef = doc(db, "users", firebaseUser.uid);
     const docSnap = await getDoc(docRef);
@@ -63,14 +51,12 @@ export function AuthProvider({ children }) {
     }
   }
 
-  // Email + password login
   async function login(email, password) {
     const result = await signInWithEmailAndPassword(auth, email, password);
     await createUserDocIfNew(result.user);
     return result;
   }
 
-  // Email + password signup
   async function signup(name, email, password, goal) {
     const result = await createUserWithEmailAndPassword(auth, email, password);
     await updateProfile(result.user, { displayName: name });
@@ -84,14 +70,24 @@ export function AuthProvider({ children }) {
     return result;
   }
 
-  // Google login — uses redirect instead of popup (more reliable)
+  // Google login with popup
   async function loginWithGoogle() {
-    await signInWithRedirect(auth, googleProvider);
-    // Page will redirect to Google, then come back
-    // getRedirectResult above handles the result
+    const result = await signInWithPopup(auth, googleProvider);
+    await createUserDocIfNew(result.user);
+    // Manually set user state immediately so navigate works right away
+    const docRef = doc(db, "users", result.user.uid);
+    const docSnap = await getDoc(docRef);
+    const extra = docSnap.exists() ? docSnap.data() : {};
+    setUser({
+      uid: result.user.uid,
+      name: extra.name || result.user.displayName || "Learner",
+      email: result.user.email,
+      plan: extra.plan || "free",
+      goal: extra.goal || "",
+    });
+    return result;
   }
 
-  // Upgrade to Pro
   async function upgradePro() {
     if (!user) return;
     const docRef = doc(db, "users", user.uid);
@@ -99,7 +95,6 @@ export function AuthProvider({ children }) {
     setUser(prev => ({ ...prev, plan: "pro" }));
   }
 
-  // Logout
   async function logout() {
     await signOut(auth);
     setUser(null);

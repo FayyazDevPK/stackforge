@@ -35,7 +35,7 @@ export default function Login() {
     setGoogleRedirecting(true);
     try {
       await loginWithGoogle();
-      // Page redirects to Google — no navigate needed
+      navigate("/dashboard");
     } catch (err) {
       setError(friendlyError(err.code));
       setGoogleRedirecting(false);
