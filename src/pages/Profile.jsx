@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../AuthContext";
-import { doc, getDoc, setDoc } from "firebase/firestore";
-import { db } from "../firebase";
+import { doc, getDoc, setDoc, deleteDoc } from "firebase/firestore";
+import { db, auth } from "../firebase";
+import { deleteUser, reauthenticateWithCredential, EmailAuthProvider } from "firebase/auth";
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -23,6 +24,10 @@ export default function Profile() {
     level: "Beginner",
   });
   const [passwords, setPasswords] = useState({ current: "", newPass: "", confirm: "" });
+  const [deleteModal, setDeleteModal] = useState(false);
+  const [deletePassword, setDeletePassword] = useState("");
+  const [deleteError, setDeleteError] = useState("");
+  const [deleteLoading, setDeleteLoading] = useState(false);
   const [notifications, setNotifications] = useState({
     newReplies: true, announcements: true, weeklyDigest: true, promos: false,
   });
@@ -94,6 +99,30 @@ export default function Profile() {
       console.error(err);
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleDeleteAccount() {
+    if (!auth.currentUser) return;
+    setDeleteLoading(true);
+    setDeleteError("");
+    try {
+      // Re-authenticate first (Firebase requires this for delete)
+      const credential = EmailAuthProvider.credential(auth.currentUser.email, deletePassword);
+      await reauthenticateWithCredential(auth.currentUser, credential);
+      // Delete Firestore user doc
+      await deleteDoc(doc(db, "users", auth.currentUser.uid));
+      // Delete Firebase Auth account
+      await deleteUser(auth.currentUser);
+      navigate("/");
+    } catch (err) {
+      if (err.code === "auth/wrong-password" || err.code === "auth/invalid-credential") {
+        setDeleteError("Incorrect password. Please try again.");
+      } else {
+        setDeleteError("Something went wrong. Please try again.");
+      }
+    } finally {
+      setDeleteLoading(false);
     }
   }
 
@@ -294,11 +323,44 @@ export default function Profile() {
             <div style={{ background: "#161b22", border: "1px solid #f0626233", borderRadius: 12, padding: "20px" }}>
               <h3 style={{ fontFamily: "'Space Grotesk',sans-serif", fontSize: 15, fontWeight: 700, marginBottom: 6, color: "#f06262" }}>Delete Account</h3>
               <p style={{ fontSize: 13, color: "#8b949e", marginBottom: 14, lineHeight: 1.6 }}>Permanently delete your account and all progress. Cannot be undone.</p>
-              <button className="btn-danger" style={{ borderColor: "#f0626266" }}>Delete My Account</button>
+              <button className="btn-danger" style={{ borderColor: "#f0626266" }} onClick={() => setDeleteModal(true)}>Delete My Account</button>
             </div>
           </div>
         )}
       </div>
+
+      {/* Delete Account Modal */}
+      {deleteModal && (
+        <div style={{ position: "fixed", inset: 0, background: "#000000bb", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
+          <div style={{ background: "#161b22", border: "1px solid #f0626244", borderRadius: 14, padding: "32px 28px", maxWidth: 420, width: "100%", position: "relative" }}>
+            <button onClick={() => { setDeleteModal(false); setDeletePassword(""); setDeleteError(""); }} style={{ position: "absolute", top: 14, right: 16, background: "none", border: "none", color: "#8b949e", fontSize: 22, cursor: "pointer" }}>×</button>
+            <div style={{ fontSize: 36, marginBottom: 12, textAlign: "center" }}>⚠️</div>
+            <h2 style={{ fontFamily: "'Space Grotesk',sans-serif", fontSize: 20, fontWeight: 800, marginBottom: 8, color: "#f06262", textAlign: "center" }}>Delete Account</h2>
+            <p style={{ fontSize: 13, color: "#8b949e", marginBottom: 20, lineHeight: 1.7, textAlign: "center" }}>
+              This will permanently delete your account and all your data. This cannot be undone.
+            </p>
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ fontSize: 12, color: "#8b949e", display: "block", marginBottom: 6 }}>Enter your password to confirm</label>
+              <input
+                style={{ width: "100%", background: "#0d1117", border: "1px solid #f0626244", borderRadius: 8, padding: "11px 14px", color: "#e6edf3", fontFamily: "inherit", fontSize: 13, outline: "none" }}
+                type="password" placeholder="••••••••"
+                value={deletePassword}
+                onChange={e => { setDeletePassword(e.target.value); setDeleteError(""); }}
+              />
+            </div>
+            {deleteError && (
+              <div style={{ background: "#f0626222", border: "1px solid #f0626244", borderRadius: 8, padding: "10px 14px", marginBottom: 16, fontSize: 12, color: "#f06262" }}>⚠ {deleteError}</div>
+            )}
+            <button
+              onClick={handleDeleteAccount}
+              disabled={deleteLoading || !deletePassword}
+              style={{ width: "100%", background: "#f06262", border: "none", color: "white", fontFamily: "inherit", fontSize: 14, fontWeight: 700, padding: "12px", borderRadius: 8, cursor: deleteLoading || !deletePassword ? "not-allowed" : "pointer", opacity: deleteLoading || !deletePassword ? 0.5 : 1 }}
+            >
+              {deleteLoading ? "Deleting..." : "Yes, Delete My Account"}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Save toast */}
       {saved && (
