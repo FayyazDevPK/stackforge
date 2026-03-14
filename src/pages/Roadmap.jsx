@@ -5,7 +5,7 @@ import { useAuth } from "../AuthContext";
 const PHASES = [
   {
     id: 1, phase: "01", title: "Foundations", color: "#4FC3F7", free: true,
-    duration: "6 weeks", level: "Beginner", progress: 100, icon: "🏗️",
+    duration: "6 weeks", level: "Beginner", progress: 0, icon: "🏗️",
     desc: "Learn the building blocks of every website — HTML, CSS, JavaScript, and Git. No experience needed.",
     topics: [
       "How the Web Works (DNS, HTTP, Browsers)",
@@ -22,7 +22,7 @@ const PHASES = [
   },
   {
     id: 2, phase: "02", title: "Frontend Development", color: "#81C784", free: true,
-    duration: "8 weeks", level: "Intermediate", progress: 60, icon: "⚛️",
+    duration: "8 weeks", level: "Intermediate", progress: 0, icon: "⚛️",
     desc: "Master React, Next.js and TypeScript — the most in-demand frontend stack at top companies worldwide.",
     topics: [
       "React 18 — Components, Props, State",
@@ -191,7 +191,7 @@ export default function Roadmap() {
         <div style={{ background: "#161b22", border: "1px solid #21262d", borderRadius: 10, padding: "16px 20px", marginBottom: 32 }}>
           <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8, fontSize: 12, flexWrap: "wrap", gap: 6 }}>
             <span style={{ color: "#8b949e" }}>Overall Progress</span>
-            <span style={{ color: "#3fb950", fontWeight: 600 }}>Phase 2 of 6 · 27% complete</span>
+            <span style={{ color: "#58a6ff", fontWeight: 600 }}>Phase 1 of 6 · Just starting!</span>
           </div>
           <div style={{ height: 7, background: "#21262d", borderRadius: 4 }}>
             <div style={{ width: "27%", height: "100%", background: "linear-gradient(90deg,#4FC3F7,#81C784)", borderRadius: 4 }} />

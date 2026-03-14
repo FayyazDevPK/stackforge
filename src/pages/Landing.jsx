@@ -6,7 +6,7 @@ const FEATURES = [
   { icon: "🏗️", title: "Real Projects", desc: "Build 30+ portfolio projects with guided walkthroughs and starter code." },
   { icon: "🤖", title: "AI & Automation", desc: "Learn OpenAI, LangChain, n8n, and build AI-powered apps from scratch." },
   { icon: "🧰", title: "Tools Directory", desc: "Every dev tool you need, explained and linked — frontend to deployment." },
-  { icon: "💬", title: "Community", desc: "24,000+ learners. Ask questions, share wins, get unstuck fast." },
+  { icon: "💬", title: "Community", desc: "Growing community. Ask questions, share wins, get unstuck fast." },
   { icon: "🏆", title: "Certificates", desc: "Earn verified certificates for each phase to show employers." },
 ];
 
@@ -32,10 +32,10 @@ const TESTIMONIALS = [
 ];
 
 const STATS = [
-  ["24,000+", "Active Learners"],
+  ["New!", "Be First to Join"],
   ["38 Weeks", "Full Curriculum"],
   ["30+", "Real Projects"],
-  ["94%", "Completion Rate"],
+  ["—", "Completion Rate"],
 ];
 
 export default function Landing() {
@@ -263,7 +263,7 @@ export default function Landing() {
         <div className="cta-box" style={{ background: "linear-gradient(135deg,#1f6feb18,#f79d6511)", border: "1px solid #1f6feb44", borderRadius: 20, padding: "56px 40px", maxWidth: 680, margin: "0 auto" }}>
           <h2 className="cta-title" style={{ fontFamily: "'Space Grotesk',sans-serif", fontSize: 32, fontWeight: 800, marginBottom: 14 }}>Ready to start building?</h2>
           <p style={{ color: "#8b949e", fontSize: 14, marginBottom: 28, lineHeight: 1.7 }}>
-            Join 24,000+ learners. Free to start. No credit card needed.
+            Be among the first learners. Free to start. No credit card needed.
           </p>
           <div className="hero-buttons" style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
             <button className="btn-primary" style={{ fontSize: 14, padding: "14px 32px" }} onClick={() => navigate("/signup")}>

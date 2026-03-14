@@ -61,7 +61,7 @@ const TAG_COLOR = { Help: "#FFB74D", Showcase: "#3fb950", Discussion: "#4FC3F7",
 const PHASES = ["All Phases", "Foundations", "Frontend", "Backend", "Full Stack", "Gen AI", "AI Automation"];
 const PHASE_COLOR = { Foundations: "#4FC3F7", Frontend: "#81C784", Backend: "#FFB74D", "Full Stack": "#F06292", "Gen AI": "#CE93D8", "AI Automation": "#80DEEA" };
 
-const STATS = [["24,318", "Members"], ["1,204", "Posts this week"], ["98%", "Questions answered"], ["48m", "Avg response time"]];
+const STATS = [["1", "Members"], ["0", "Posts this week"], ["—", "Questions answered"], ["—", "Avg response time"]];
 
 export default function Community() {
   const navigate = useNavigate();
@@ -179,7 +179,7 @@ export default function Community() {
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "#8b949e" }}>
             <span className="live" />
-            <span>2,841 online</span>
+            <span>1 online</span>
           </div>
           <button className="btn-primary" onClick={() => setNewPostModal(true)}>+ New Post</button>
         </div>
@@ -192,7 +192,7 @@ export default function Community() {
         <div style={{ marginBottom: 24 }}>
           <div style={{ fontSize: 11, color: "#CE93D8", letterSpacing: "0.1em", marginBottom: 6, textTransform: "uppercase" }}>// community.forum</div>
           <h1 style={{ fontFamily: "'Space Grotesk',sans-serif", fontSize: 26, fontWeight: 800, marginBottom: 6 }}>Community Forum</h1>
-          <p style={{ color: "#8b949e", fontSize: 13 }}>Ask questions, share wins, and learn with 24,000+ developers</p>
+          <p style={{ color: "#8b949e", fontSize: 13 }}>Ask questions, share wins, and learn together</p>
         </div>
 
         {/* Stats */}

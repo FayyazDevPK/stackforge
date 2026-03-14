@@ -181,7 +181,7 @@ export default function Dashboard() {
           <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "#8b949e" }}>
               <span className="live" style={{ width: 7, height: 7, borderRadius: "50%", background: "#3fb950", display: "inline-block" }} />
-              2,841 online
+              1 online
             </div>
             <div onClick={() => navigate("/profile")} title="Profile & Settings"
               style={{ width: 32, height: 32, borderRadius: "50%", background: "linear-gradient(135deg,#58a6ff,#1f6feb)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>
