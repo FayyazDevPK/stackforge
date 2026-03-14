@@ -1,35 +1,49 @@
 import { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-
-const DEFAULT_LESSON = {
-  title: "React Router v6",
-  duration: "30 min",
-  type: "video",
-};
-
-const DEFAULT_COURSE = {
-  title: "Frontend Development",
-  color: "#81C784",
-  phase: "02",
-};
-
-const NOTES_PLACEHOLDER = `// Your notes for this lesson...\n\n- Key point 1\n- Key point 2\n`;
-
-const RESOURCES = [
-  { label: "Official React Router Docs", url: "#" },
-  { label: "Lesson Cheatsheet (PDF)", url: "#" },
-  { label: "Starter Code on GitHub", url: "#" },
-];
+import { useNavigate, useParams, useLocation } from "react-router-dom";
+import { useAuth } from "../AuthContext";
+import { getLesson } from "../lessonData";
 
 export default function LessonPlayer() {
   const navigate = useNavigate();
+  const { id } = useParams();
   const location = useLocation();
-  const lesson = location.state?.lesson || DEFAULT_LESSON;
-  const course = location.state?.course || DEFAULT_COURSE;
+  const { user } = useAuth();
 
-  const [tab, setTab] = useState("overview");
-  const [notes, setNotes] = useState(NOTES_PLACEHOLDER);
-  const [done, setDone] = useState(false);
+  const lesson = getLesson(id) || location.state?.lesson;
+
+  const [tab, setTab] = useState("content");
+  const [quizAnswers, setQuizAnswers] = useState({});
+  const [quizSubmitted, setQuizSubmitted] = useState(false);
+  const [quizScore, setQuizScore] = useState(0);
+  const [lessonDone, setLessonDone] = useState(false);
+
+  function handleQuizSubmit() {
+    if (!lesson?.quiz) return;
+    let score = 0;
+    lesson.quiz.forEach((q, i) => {
+      if (quizAnswers[i] === q.correct) score++;
+    });
+    setQuizScore(score);
+    setQuizSubmitted(true);
+  }
+
+  function handleMarkDone() {
+    setLessonDone(true);
+  }
+
+  if (!lesson) {
+    return (
+      <div style={{ fontFamily: "'JetBrains Mono',monospace", background: "#0d1117", minHeight: "100vh", color: "#e6edf3", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 16 }}>
+        <div style={{ fontSize: 48 }}>🔍</div>
+        <div style={{ fontSize: 18, fontWeight: 700 }}>Lesson not found</div>
+        <button onClick={() => navigate("/courses")} style={{ background: "#58a6ff", border: "none", color: "white", fontFamily: "inherit", fontSize: 14, fontWeight: 700, padding: "10px 24px", borderRadius: 8, cursor: "pointer" }}>
+          ← Back to Courses
+        </button>
+      </div>
+    );
+  }
+
+  const scorePercent = lesson.quiz ? Math.round((quizScore / lesson.quiz.length) * 100) : 0;
 
   return (
     <div style={{ fontFamily: "'JetBrains Mono', monospace", background: "#0d1117", minHeight: "100vh", color: "#e6edf3", overflowX: "hidden" }}>
@@ -39,169 +53,265 @@ export default function LessonPlayer() {
         html, body, #root { width: 100%; overflow-x: hidden; }
         ::-webkit-scrollbar { width: 5px; background: #0d1117; }
         ::-webkit-scrollbar-thumb { background: #21262d; border-radius: 3px; }
-        .back-btn { background: none; border: none; color: #8b949e; font-family: inherit; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 6px; padding: 0; }
-        .back-btn:hover { color: #e6edf3; }
-        .tab-btn { background: none; border: none; font-family: inherit; font-size: 13px; cursor: pointer; padding: 8px 16px; border-bottom: 2px solid transparent; transition: all 0.2s; color: #8b949e; }
+        .tab-btn { background: none; border: none; font-family: inherit; font-size: 13px; cursor: pointer; padding: 9px 18px; border-bottom: 2px solid transparent; color: #8b949e; transition: all 0.2s; white-space: nowrap; }
         .tab-btn.active { color: #58a6ff; border-bottom-color: #58a6ff; }
         .tab-btn:hover { color: #e6edf3; }
-        .btn-primary { background: linear-gradient(135deg, #58a6ff, #1f6feb); border: none; color: white; font-family: inherit; font-size: 13px; font-weight: 700; padding: 10px 22px; border-radius: 8px; cursor: pointer; transition: opacity 0.2s; }
-        .btn-primary:hover { opacity: 0.88; }
-        .btn-success { background: linear-gradient(135deg, #3fb950, #238636); border: none; color: white; font-family: inherit; font-size: 13px; font-weight: 700; padding: 10px 22px; border-radius: 8px; cursor: pointer; }
-        .notes-area { width: 100%; background: #0d1117; border: 1px solid #21262d; border-radius: 8px; padding: 14px; color: #c9d1d9; font-family: inherit; font-size: 13px; resize: vertical; outline: none; line-height: 1.7; min-height: 200px; }
-        .notes-area:focus { border-color: #30363d; }
-        .resource-link { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: #161b22; border: 1px solid #21262d; border-radius: 8px; cursor: pointer; transition: border-color 0.2s; text-decoration: none; }
-        .resource-link:hover { border-color: #58a6ff44; }
+        .lesson-content h2 { font-family: 'Space Grotesk',sans-serif; font-size: 20px; font-weight: 800; color: #e6edf3; margin: 24px 0 12px; }
+        .lesson-content h3 { font-size: 15px; font-weight: 700; color: #c9d1d9; margin: 20px 0 8px; }
+        .lesson-content p { font-size: 14px; color: #8b949e; line-height: 1.8; margin-bottom: 12px; }
+        .lesson-content ul, .lesson-content ol { padding-left: 20px; margin-bottom: 12px; }
+        .lesson-content li { font-size: 14px; color: #8b949e; line-height: 1.8; }
+        .lesson-content code { background: #21262d; color: #79c0ff; padding: 2px 6px; border-radius: 4px; font-size: 13px; }
+        .lesson-content strong { color: #e6edf3; font-weight: 600; }
+        .lesson-content table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 13px; }
+        .lesson-content th { background: #1c2128; color: #8b949e; padding: 8px 12px; text-align: left; border: 1px solid #21262d; }
+        .lesson-content td { padding: 8px 12px; border: 1px solid #21262d; color: #c9d1d9; }
+        .code-block { background: #161b22; border: 1px solid #21262d; border-radius: 10px; overflow: hidden; margin: 16px 0; }
+        .code-header { padding: 10px 16px; background: #1c2128; border-bottom: 1px solid #21262d; display: flex; align-items: center; justify-content: space-between; }
+        .code-body { padding: 16px; overflow-x: auto; font-size: 13px; line-height: 1.7; color: #e6edf3; white-space: pre; }
+        .quiz-option { width: 100%; background: #0d1117; border: 1px solid #21262d; border-radius: 8px; padding: 12px 16px; color: #c9d1d9; font-family: inherit; font-size: 13px; cursor: pointer; text-align: left; transition: all 0.2s; margin-bottom: 8px; }
+        .quiz-option:hover { border-color: #58a6ff44; }
+        .quiz-option.selected { border-color: #58a6ff; color: #58a6ff; background: #58a6ff11; }
+        .quiz-option.correct { border-color: #3fb950; color: #3fb950; background: #3fb95011; }
+        .quiz-option.wrong { border-color: #f06262; color: #f06262; background: #f0626211; }
+        .exercise-item { background: #161b22; border: 1px solid #21262d; border-left: 3px solid #f79d65; border-radius: 8px; padding: 14px 16px; margin-bottom: 10px; font-size: 13px; color: #c9d1d9; line-height: 1.6; }
         @media (max-width: 768px) {
-          .player-layout { flex-direction: column !important; }
-          .sidebar-panel { width: 100% !important; border-left: none !important; border-top: 1px solid #21262d !important; }
-          .top-bar-pad { padding: 0 16px !important; }
-          .content-pad { padding: 20px 16px !important; }
+          .lesson-grid { grid-template-columns: 1fr !important; }
+          .top-bar { padding: 0 16px !important; }
+          .page-pad { padding: 16px !important; }
         }
       `}</style>
 
       {/* Top Bar */}
-      <div className="top-bar-pad" style={{ background: "#161b22", borderBottom: "1px solid #21262d", height: 56, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 24px", position: "sticky", top: 0, zIndex: 100 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 14, minWidth: 0 }}>
-          <button className="back-btn" onClick={() => navigate("/courses")}>← Courses</button>
+      <div className="top-bar" style={{ background: "#161b22", borderBottom: "1px solid #21262d", height: 56, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 28px", position: "sticky", top: 0, zIndex: 100 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+          <button onClick={() => navigate("/courses")} style={{ background: "none", border: "none", color: "#8b949e", fontFamily: "inherit", fontSize: 13, cursor: "pointer" }}>← Courses</button>
           <span style={{ color: "#30363d" }}>|</span>
-          <span style={{ fontSize: 11, color: "#8b949e", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-            Phase {course.phase} · {course.title}
-          </span>
+          <span style={{ fontSize: 12, color: lesson.phaseColor, fontWeight: 700 }}>Phase {lesson.phase}</span>
+          <span style={{ color: "#30363d" }}>›</span>
+          <span style={{ fontSize: 13, color: "#e6edf3", fontWeight: 600 }}>{lesson.title}</span>
         </div>
-        <button
-          className={done ? "btn-success" : "btn-primary"}
-          onClick={() => { setDone(!done); }}
-          style={{ flexShrink: 0 }}
-        >
-          {done ? "✓ Completed" : "Mark Complete"}
-        </button>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <span style={{ fontSize: 12, color: "#8b949e" }}>⏱ {lesson.duration}</span>
+          {lessonDone
+            ? <span style={{ fontSize: 12, background: "#3fb95022", color: "#3fb950", border: "1px solid #3fb95033", padding: "4px 12px", borderRadius: 20, fontWeight: 700 }}>✓ Complete</span>
+            : <button onClick={handleMarkDone} style={{ background: "linear-gradient(135deg,#58a6ff,#1f6feb)", border: "none", color: "white", fontFamily: "inherit", fontSize: 12, fontWeight: 700, padding: "6px 16px", borderRadius: 6, cursor: "pointer" }}>Mark Complete</button>
+          }
+        </div>
       </div>
 
-      {/* Layout */}
-      <div className="player-layout" style={{ display: "flex", minHeight: "calc(100vh - 56px)" }}>
+      <div className="page-pad" style={{ padding: "24px 28px", maxWidth: 1100, margin: "0 auto" }}>
+        <div className="lesson-grid" style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: 24 }}>
 
-        {/* Main */}
-        <div style={{ flex: 1, minWidth: 0 }}>
-
-          {/* Video Area */}
-          <div style={{ background: "#010409", aspectRatio: "16/9", maxHeight: 480, width: "100%", display: "flex", alignItems: "center", justifyContent: "center", position: "relative", overflow: "hidden" }}>
-            {/* Fake video player */}
-            <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg, #0d1117 0%, #161b22 100%)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16 }}>
-              <div style={{ width: 64, height: 64, borderRadius: "50%", background: "#21262d", border: "2px solid #30363d", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", transition: "all 0.2s" }}>
-                <span style={{ fontSize: 24, color: course.color }}>▶</span>
-              </div>
-              <div style={{ textAlign: "center" }}>
-                <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontSize: 18, fontWeight: 700, color: "#e6edf3", marginBottom: 4 }}>{lesson.title}</div>
-                <div style={{ fontSize: 12, color: "#8b949e" }}>{lesson.duration} · {lesson.type}</div>
-              </div>
-              <div style={{ fontSize: 11, color: "#484f58", marginTop: 8 }}>
-                🎬 Video will play here when you connect your content
-              </div>
+          {/* Left — Main content */}
+          <div>
+            {/* Video */}
+            <div style={{ background: "#161b22", border: "1px solid #21262d", borderRadius: 12, overflow: "hidden", marginBottom: 20 }}>
+              {lesson.videoId === "PLACEHOLDER" ? (
+                <div style={{ aspectRatio: "16/9", background: "#0d1117", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12 }}>
+                  <div style={{ fontSize: 48 }}>🎬</div>
+                  <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontSize: 16, fontWeight: 700, color: "#e6edf3" }}>Video Coming Soon</div>
+                  <div style={{ fontSize: 13, color: "#8b949e", textAlign: "center", maxWidth: 300, lineHeight: 1.6 }}>
+                    Upload your YouTube video and replace the PLACEHOLDER in lessonData.js with your video ID
+                  </div>
+                </div>
+              ) : (
+                <div style={{ aspectRatio: "16/9" }}>
+                  <iframe
+                    width="100%" height="100%"
+                    src={`https://www.youtube.com/embed/${lesson.videoId}`}
+                    title={lesson.title}
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    style={{ display: "block" }}
+                  />
+                </div>
+              )}
             </div>
 
-            {/* Video Controls Bar */}
-            <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, background: "linear-gradient(transparent, #0d1117cc)", padding: "20px 16px 12px", display: "flex", alignItems: "center", gap: 12 }}>
-              <button style={{ background: "none", border: "none", color: "#e6edf3", cursor: "pointer", fontSize: 16 }}>▶</button>
-              <div style={{ flex: 1, height: 3, background: "#30363d", borderRadius: 2, cursor: "pointer", position: "relative" }}>
-                <div style={{ width: "35%", height: "100%", background: course.color, borderRadius: 2 }} />
-              </div>
-              <span style={{ fontSize: 11, color: "#8b949e", whiteSpace: "nowrap" }}>10:30 / 30:00</span>
-              <button style={{ background: "none", border: "none", color: "#8b949e", cursor: "pointer", fontSize: 13 }}>⛶</button>
-            </div>
-          </div>
-
-          {/* Tabs */}
-          <div className="content-pad" style={{ padding: "0 24px" }}>
-            <div style={{ display: "flex", borderBottom: "1px solid #21262d", marginBottom: 24 }}>
-              {["overview", "notes", "resources"].map(t => (
+            {/* Tabs */}
+            <div style={{ borderBottom: "1px solid #21262d", marginBottom: 20, display: "flex", overflowX: "auto" }}>
+              {["content", "code", "exercises", "quiz"].map(t => (
                 <button key={t} className={`tab-btn${tab === t ? " active" : ""}`} onClick={() => setTab(t)}>
-                  {t.charAt(0).toUpperCase() + t.slice(1)}
+                  {t === "content" ? "📖 Lesson" : t === "code" ? "💻 Code" : t === "exercises" ? "🏋️ Practice" : "📝 Quiz"}
                 </button>
               ))}
             </div>
 
-            {/* Overview Tab */}
-            {tab === "overview" && (
-              <div style={{ paddingBottom: 40 }}>
-                <h2 style={{ fontFamily: "'Space Grotesk',sans-serif", fontSize: 20, fontWeight: 700, marginBottom: 12 }}>{lesson.title}</h2>
-                <div style={{ display: "flex", gap: 12, marginBottom: 20, flexWrap: "wrap" }}>
-                  <span style={{ fontSize: 12, color: "#8b949e" }}>⏱ {lesson.duration}</span>
-                  <span style={{ fontSize: 12, color: "#8b949e" }}>📚 Phase {course.phase}</span>
-                  <span style={{ fontSize: 12, color: course.color }}>● {course.title}</span>
+            {/* CONTENT TAB */}
+            {tab === "content" && (
+              <div>
+                <div style={{ marginBottom: 20 }}>
+                  <h1 style={{ fontFamily: "'Space Grotesk',sans-serif", fontSize: 22, fontWeight: 800, marginBottom: 8 }}>{lesson.title}</h1>
+                  <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                    <span style={{ fontSize: 12, background: lesson.phaseColor + "22", color: lesson.phaseColor, padding: "3px 10px", borderRadius: 10, fontWeight: 700 }}>{lesson.phaseTitle}</span>
+                    <span style={{ fontSize: 12, color: "#8b949e" }}>⏱ {lesson.duration}</span>
+                  </div>
                 </div>
-                <p style={{ fontSize: 13, color: "#8b949e", lineHeight: 1.8, marginBottom: 20 }}>
-                  In this lesson you'll learn how to use React Router v6 to navigate between pages in your React app.
-                  We'll cover routes, links, nested routing, dynamic params, and the new hooks like <code style={{ color: "#58a6ff", background: "#58a6ff11", padding: "1px 6px", borderRadius: 4 }}>useNavigate</code> and <code style={{ color: "#58a6ff", background: "#58a6ff11", padding: "1px 6px", borderRadius: 4 }}>useParams</code>.
+
+                {/* Objectives */}
+                <div style={{ background: "#161b22", border: "1px solid #21262d", borderLeft: `3px solid ${lesson.phaseColor}`, borderRadius: 8, padding: "16px 20px", marginBottom: 24 }}>
+                  <div style={{ fontSize: 12, color: lesson.phaseColor, fontWeight: 700, marginBottom: 10, textTransform: "uppercase", letterSpacing: "0.06em" }}>What you'll learn</div>
+                  {lesson.objectives.map((obj, i) => (
+                    <div key={i} style={{ display: "flex", gap: 8, marginBottom: 6, fontSize: 13, color: "#c9d1d9" }}>
+                      <span style={{ color: lesson.phaseColor, flexShrink: 0 }}>✓</span> {obj}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Lesson content rendered as markdown-like */}
+                <div className="lesson-content" dangerouslySetInnerHTML={{
+                  __html: lesson.content
+                    .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+                    .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+                    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                    .replace(/`([^`]+)`/g, '<code>$1</code>')
+                    .replace(/^- (.+)$/gm, '<li>$1</li>')
+                    .replace(/^(\d+)\. (.+)$/gm, '<li>$2</li>')
+                    .replace(/\n\n/g, '</p><p>')
+                    .replace(/^(?!<[h|l])/gm, '')
+                }} />
+              </div>
+            )}
+
+            {/* CODE TAB */}
+            {tab === "code" && (
+              <div>
+                <h2 style={{ fontFamily: "'Space Grotesk',sans-serif", fontSize: 18, fontWeight: 800, marginBottom: 20 }}>Code Examples</h2>
+                {lesson.codeExamples?.map((ex, i) => (
+                  <div key={i} className="code-block">
+                    <div className="code-header">
+                      <span style={{ fontSize: 13, color: "#e6edf3", fontWeight: 600 }}>{ex.title}</span>
+                      <span style={{ fontSize: 11, background: "#21262d", color: "#8b949e", padding: "2px 8px", borderRadius: 4 }}>{ex.language}</span>
+                    </div>
+                    <div className="code-body">{ex.code}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* EXERCISES TAB */}
+            {tab === "exercises" && (
+              <div>
+                <h2 style={{ fontFamily: "'Space Grotesk',sans-serif", fontSize: 18, fontWeight: 800, marginBottom: 8 }}>Practice Exercises</h2>
+                <p style={{ fontSize: 13, color: "#8b949e", marginBottom: 20, lineHeight: 1.7 }}>
+                  Complete these exercises to reinforce what you learned. Try them yourself before checking solutions.
                 </p>
-                <h3 style={{ fontFamily: "'Space Grotesk',sans-serif", fontSize: 15, fontWeight: 700, marginBottom: 12, color: "#e6edf3" }}>What you'll learn</h3>
-                <ul style={{ listStyle: "none", display: "flex", flexDirection: "column", gap: 8 }}>
-                  {["Setting up React Router v6", "Creating routes with <Routes> and <Route>", "Using <Link> and <NavLink>", "Dynamic routes with useParams", "Programmatic navigation with useNavigate", "Nested routes and layouts"].map(item => (
-                    <li key={item} style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 13, color: "#c9d1d9" }}>
-                      <span style={{ color: "#3fb950", flexShrink: 0 }}>✓</span> {item}
-                    </li>
-                  ))}
-                </ul>
+                {lesson.exercises?.map((ex, i) => (
+                  <div key={i} className="exercise-item">
+                    <div style={{ display: "flex", gap: 12 }}>
+                      <span style={{ color: "#f79d65", fontWeight: 700, flexShrink: 0 }}>#{i + 1}</span>
+                      <span>{ex}</span>
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
 
-            {/* Notes Tab */}
-            {tab === "notes" && (
-              <div style={{ paddingBottom: 40 }}>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
-                  <h3 style={{ fontFamily: "'Space Grotesk',sans-serif", fontSize: 15, fontWeight: 700 }}>Your Notes</h3>
-                  <span style={{ fontSize: 11, color: "#484f58" }}>Auto-saved</span>
-                </div>
-                <textarea
-                  className="notes-area"
-                  value={notes}
-                  onChange={e => setNotes(e.target.value)}
-                  placeholder="Write your notes here..."
-                />
-              </div>
-            )}
+            {/* QUIZ TAB */}
+            {tab === "quiz" && (
+              <div>
+                <h2 style={{ fontFamily: "'Space Grotesk',sans-serif", fontSize: 18, fontWeight: 800, marginBottom: 8 }}>Knowledge Check</h2>
+                <p style={{ fontSize: 13, color: "#8b949e", marginBottom: 24 }}>
+                  {lesson.quiz?.length} questions · Test your understanding of {lesson.title}
+                </p>
 
-            {/* Resources Tab */}
-            {tab === "resources" && (
-              <div style={{ paddingBottom: 40 }}>
-                <h3 style={{ fontFamily: "'Space Grotesk',sans-serif", fontSize: 15, fontWeight: 700, marginBottom: 16 }}>Lesson Resources</h3>
-                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                  {RESOURCES.map(r => (
-                    <a key={r.label} href={r.url} className="resource-link">
-                      <span style={{ fontSize: 13, color: "#e6edf3" }}>📎 {r.label}</span>
-                      <span style={{ fontSize: 12, color: "#58a6ff" }}>Open →</span>
-                    </a>
-                  ))}
-                </div>
+                {quizSubmitted ? (
+                  <div style={{ textAlign: "center", padding: "32px 0" }}>
+                    <div style={{ fontSize: 56, marginBottom: 16 }}>
+                      {scorePercent >= 80 ? "🎉" : scorePercent >= 60 ? "👍" : "📚"}
+                    </div>
+                    <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontSize: 32, fontWeight: 800, color: scorePercent >= 80 ? "#3fb950" : scorePercent >= 60 ? "#f79d65" : "#f06262", marginBottom: 8 }}>
+                      {quizScore}/{lesson.quiz.length}
+                    </div>
+                    <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>
+                      {scorePercent >= 80 ? "Excellent work!" : scorePercent >= 60 ? "Good job!" : "Keep studying!"}
+                    </div>
+                    <div style={{ fontSize: 13, color: "#8b949e", marginBottom: 28 }}>{scorePercent}% correct</div>
+
+                    {/* Show answers */}
+                    <div style={{ textAlign: "left" }}>
+                      {lesson.quiz.map((q, i) => (
+                        <div key={i} style={{ marginBottom: 20 }}>
+                          <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 8, color: "#e6edf3" }}>{i + 1}. {q.question}</div>
+                          {q.options.map((opt, j) => (
+                            <div key={j} className={`quiz-option ${j === q.correct ? "correct" : quizAnswers[i] === j && j !== q.correct ? "wrong" : ""}`}
+                              style={{ cursor: "default" }}>
+                              {j === q.correct ? "✓ " : quizAnswers[i] === j ? "✗ " : ""}{opt}
+                            </div>
+                          ))}
+                        </div>
+                      ))}
+                    </div>
+
+                    <button onClick={() => { setQuizSubmitted(false); setQuizAnswers({}); setQuizScore(0); }}
+                      style={{ background: "#21262d", border: "none", color: "#e6edf3", fontFamily: "inherit", fontSize: 13, fontWeight: 600, padding: "10px 24px", borderRadius: 8, cursor: "pointer", marginTop: 16 }}>
+                      Retake Quiz
+                    </button>
+                  </div>
+                ) : (
+                  <div>
+                    {lesson.quiz?.map((q, i) => (
+                      <div key={i} style={{ marginBottom: 24 }}>
+                        <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 12, color: "#e6edf3" }}>{i + 1}. {q.question}</div>
+                        {q.options.map((opt, j) => (
+                          <button key={j} className={`quiz-option${quizAnswers[i] === j ? " selected" : ""}`}
+                            onClick={() => setQuizAnswers({ ...quizAnswers, [i]: j })}>
+                            <span style={{ color: "#484f58", marginRight: 8 }}>{String.fromCharCode(65 + j)}.</span> {opt}
+                          </button>
+                        ))}
+                      </div>
+                    ))}
+                    <button
+                      onClick={handleQuizSubmit}
+                      disabled={Object.keys(quizAnswers).length < (lesson.quiz?.length || 0)}
+                      style={{ background: Object.keys(quizAnswers).length < (lesson.quiz?.length || 0) ? "#21262d" : "linear-gradient(135deg,#58a6ff,#1f6feb)", border: "none", color: Object.keys(quizAnswers).length < (lesson.quiz?.length || 0) ? "#484f58" : "white", fontFamily: "inherit", fontSize: 14, fontWeight: 700, padding: "12px 32px", borderRadius: 8, cursor: Object.keys(quizAnswers).length < (lesson.quiz?.length || 0) ? "not-allowed" : "pointer" }}>
+                      Submit Quiz →
+                    </button>
+                    <div style={{ fontSize: 12, color: "#484f58", marginTop: 8 }}>
+                      {Object.keys(quizAnswers).length}/{lesson.quiz?.length} questions answered
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
-        </div>
 
-        {/* Sidebar — Next lessons */}
-        <div className="sidebar-panel" style={{ width: 300, borderLeft: "1px solid #21262d", background: "#161b22", overflowY: "auto" }}>
-          <div style={{ padding: "16px 20px", borderBottom: "1px solid #21262d" }}>
-            <div style={{ fontSize: 11, color: "#8b949e", letterSpacing: "0.08em", textTransform: "uppercase" }}>Phase {course.phase} · {course.title}</div>
-          </div>
-          {[
-            { id: 1, title: "React Fundamentals", done: true },
-            { id: 2, title: "JSX & Components", done: true },
-            { id: 3, title: "Props & State", done: true },
-            { id: 4, title: "React Hooks Deep Dive", done: true },
-            { id: 5, title: "useEffect & Async", done: true },
-            { id: 6, title: "React Router v6", done: false, active: true },
-            { id: 7, title: "State Mgmt w/ Zustand", done: false },
-            { id: 8, title: "TypeScript for React", done: false },
-            { id: 9, title: "Tailwind CSS Mastery", done: false },
-            { id: 10, title: "Next.js 14 App Router", done: false },
-          ].map(l => (
-            <div key={l.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "11px 20px", borderBottom: "1px solid #21262d11", cursor: "pointer", background: l.active ? "#21262d" : "transparent", borderLeft: l.active ? `3px solid ${course.color}` : "3px solid transparent", transition: "background 0.15s" }}
-              onClick={() => navigate(`/courses/2-${l.id}`)}>
-              <div style={{ width: 22, height: 22, borderRadius: "50%", background: l.done ? "#3fb95022" : l.active ? "#21262d" : "#0d1117", border: `1px solid ${l.done ? "#3fb95055" : "#30363d"}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, flexShrink: 0, color: l.done ? "#3fb950" : "#8b949e" }}>
-                {l.done ? "✓" : l.active ? "▶" : l.id}
+          {/* Right — Lesson info sidebar */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+
+            {/* Progress */}
+            <div style={{ background: "#161b22", border: "1px solid #21262d", borderRadius: 12, padding: 20 }}>
+              <div style={{ fontSize: 12, color: "#8b949e", marginBottom: 12, textTransform: "uppercase", letterSpacing: "0.06em" }}>Your Progress</div>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                {["content", "code", "exercises", "quiz"].map(t => (
+                  <div key={t} style={{ flex: 1, minWidth: 60, background: tab === t ? lesson.phaseColor + "22" : "#21262d", border: `1px solid ${tab === t ? lesson.phaseColor + "44" : "#30363d"}`, borderRadius: 6, padding: "8px 4px", textAlign: "center", cursor: "pointer" }}
+                    onClick={() => setTab(t)}>
+                    <div style={{ fontSize: 16 }}>{t === "content" ? "📖" : t === "code" ? "💻" : t === "exercises" ? "🏋️" : "📝"}</div>
+                    <div style={{ fontSize: 10, color: tab === t ? lesson.phaseColor : "#484f58", marginTop: 4 }}>{t}</div>
+                  </div>
+                ))}
               </div>
-              <span style={{ fontSize: 12, color: l.active ? "#e6edf3" : l.done ? "#8b949e" : "#c9d1d9", textDecoration: l.done ? "line-through" : "none", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{l.title}</span>
             </div>
-          ))}
+
+            {/* Next lesson */}
+            <div style={{ background: "#161b22", border: "1px solid #21262d", borderRadius: 12, padding: 20 }}>
+              <div style={{ fontSize: 12, color: "#8b949e", marginBottom: 12, textTransform: "uppercase", letterSpacing: "0.06em" }}>Up Next</div>
+              <button onClick={() => navigate("/courses")}
+                style={{ width: "100%", background: "linear-gradient(135deg,#58a6ff,#1f6feb)", border: "none", color: "white", fontFamily: "inherit", fontSize: 13, fontWeight: 700, padding: "11px", borderRadius: 8, cursor: "pointer" }}>
+                Back to Course →
+              </button>
+            </div>
+
+            {/* Phase info */}
+            <div style={{ background: "#161b22", border: "1px solid #21262d", borderRadius: 12, padding: 20 }}>
+              <div style={{ fontSize: 12, color: "#8b949e", marginBottom: 12, textTransform: "uppercase", letterSpacing: "0.06em" }}>Phase Info</div>
+              <div style={{ fontSize: 13, color: lesson.phaseColor, fontWeight: 700, marginBottom: 4 }}>Phase {lesson.phase}</div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: "#e6edf3", marginBottom: 8 }}>{lesson.phaseTitle}</div>
+              <div style={{ fontSize: 12, color: "#8b949e" }}>Lesson {lesson.id.split("-")[1]} of phase</div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
