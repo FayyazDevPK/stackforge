@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../AuthContext";
 
+const ADMIN_EMAIL = "fayyazliaquat70@gmail.com";
+
 const PHASES = [
   { id: 1, phase: "01", title: "Foundations", color: "#4FC3F7", progress: 100, lessons: 12, done: 12, free: true },
   { id: 2, phase: "02", title: "Frontend", color: "#81C784", progress: 60, lessons: 18, done: 11, free: true },
@@ -146,6 +148,17 @@ export default function Dashboard() {
               <div style={{ fontSize: 12, fontWeight: 700, color: "#3fb950" }}>✦ Pro Plan Active</div>
               <div style={{ fontSize: 11, color: "#8b949e", marginTop: 4 }}>All 6 phases unlocked</div>
             </div>
+          </div>
+        )}
+
+        {/* Admin link — only shown to admin */}
+        {user?.email === ADMIN_EMAIL && (
+          <div style={{ padding: "0 12px 8px" }}>
+            <button
+              onClick={() => navigate("/admin/stackforge2025")}
+              style={{ display: "flex", alignItems: "center", gap: 8, padding: "9px 16px", borderRadius: 8, cursor: "pointer", fontSize: 12, color: "#f06262", background: "#f0626211", border: "1px solid #f0626222", fontFamily: "inherit", width: "100%", fontWeight: 700 }}>
+              <span>🔒</span> Admin Panel
+            </button>
           </div>
         )}
 

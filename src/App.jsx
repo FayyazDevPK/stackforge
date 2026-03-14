@@ -14,6 +14,7 @@ const Tools = lazy(() => import("./pages/Tools"));
 const Community = lazy(() => import("./pages/Community"));
 const Pricing = lazy(() => import("./pages/Pricing"));
 const Profile = lazy(() => import("./pages/Profile"));
+const Admin = lazy(() => import("./pages/Admin"));
 
 // Simple loading spinner shown while page loads
 function PageLoader() {
@@ -45,6 +46,7 @@ export default function App() {
           <Route path="/community" element={<Community />} />
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/admin/stackforge2025" element={<Admin />} />
         </Routes>
       </Suspense>
     </BrowserRouter>
