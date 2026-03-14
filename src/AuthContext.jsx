@@ -3,7 +3,8 @@ import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
-  signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   signOut,
   updateProfile,
 } from "firebase/auth";
@@ -16,8 +17,17 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Listen to Firebase auth state
   useEffect(() => {
+    // Handle Google redirect result when user comes back
+    getRedirectResult(auth).then(async (result) => {
+      if (result?.user) {
+        await createUserDocIfNew(result.user);
+      }
+    }).catch((err) => {
+      console.error("Redirect error:", err);
+    });
+
+    // Listen to auth state
     const unsub = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         const docRef = doc(db, "users", firebaseUser.uid);
@@ -25,7 +35,6 @@ export function AuthProvider({ children }) {
         const extra = docSnap.exists() ? docSnap.data() : {};
         setUser({
           uid: firebaseUser.uid,
-          // Always prefer Firestore name over Firebase Auth displayName
           name: extra.name || firebaseUser.displayName || "Learner",
           email: firebaseUser.email,
           plan: extra.plan || "free",
@@ -39,13 +48,11 @@ export function AuthProvider({ children }) {
     return unsub;
   }, []);
 
-  // Create user doc — only sets fields that don't exist yet (never overwrites)
+  // Create user doc only if new user
   async function createUserDocIfNew(firebaseUser, extra = {}) {
     const docRef = doc(db, "users", firebaseUser.uid);
     const docSnap = await getDoc(docRef);
-
     if (!docSnap.exists()) {
-      // Brand new user — create doc
       await setDoc(docRef, {
         name: extra.name || firebaseUser.displayName || "Learner",
         email: firebaseUser.email,
@@ -54,7 +61,6 @@ export function AuthProvider({ children }) {
         createdAt: new Date().toISOString(),
       });
     }
-    // Existing user — do NOT overwrite anything
   }
 
   // Email + password login
@@ -78,11 +84,11 @@ export function AuthProvider({ children }) {
     return result;
   }
 
-  // Google login — never overwrites existing profile data
+  // Google login — uses redirect instead of popup (more reliable)
   async function loginWithGoogle() {
-    const result = await signInWithPopup(auth, googleProvider);
-    await createUserDocIfNew(result.user);
-    return result;
+    await signInWithRedirect(auth, googleProvider);
+    // Page will redirect to Google, then come back
+    // getRedirectResult above handles the result
   }
 
   // Upgrade to Pro
