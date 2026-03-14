@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../AuthContext";
+import { sendPasswordResetEmail } from "firebase/auth";
+import { auth } from "../firebase";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -8,9 +10,15 @@ export default function Login() {
   const [form, setForm] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
-  const [googleRedirecting, setGoogleRedirecting] = useState(false);
   const [error, setError] = useState("");
   const [showPass, setShowPass] = useState(false);
+
+  // Reset password state
+  const [resetMode, setResetMode] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
+  const [resetSent, setResetSent] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
+  const [resetError, setResetError] = useState("");
 
   function handleChange(e) {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -21,6 +29,7 @@ export default function Login() {
     e.preventDefault();
     if (!form.email || !form.password) { setError("Please fill in all fields."); return; }
     setLoading(true);
+    setError("");
     try {
       await login(form.email, form.password);
       navigate("/dashboard");
@@ -32,24 +41,43 @@ export default function Login() {
   }
 
   async function handleGoogle() {
-    setGoogleRedirecting(true);
+    setGoogleLoading(true);
+    setError("");
     try {
       await loginWithGoogle();
       navigate("/dashboard");
     } catch (err) {
       setError(friendlyError(err.code));
-      setGoogleRedirecting(false);
+      setGoogleLoading(false);
+    }
+  }
+
+  async function handleResetPassword(e) {
+    e.preventDefault();
+    if (!resetEmail) { setResetError("Please enter your email address."); return; }
+    setResetLoading(true);
+    setResetError("");
+    try {
+      await sendPasswordResetEmail(auth, resetEmail);
+      setResetSent(true);
+    } catch (err) {
+      setResetError(friendlyError(err.code));
+    } finally {
+      setResetLoading(false);
     }
   }
 
   function friendlyError(code) {
     switch (code) {
       case "auth/user-not-found": return "No account found with this email.";
-      case "auth/wrong-password": return "Incorrect password.";
+      case "auth/wrong-password": return "Incorrect password. Try again or reset it.";
       case "auth/invalid-email": return "Invalid email address.";
-      case "auth/too-many-requests": return "Too many attempts. Try again later.";
-      case "auth/invalid-credential": return "Invalid email or password.";
-      default: return "Something went wrong. Please try again.";
+      case "auth/too-many-requests": return "Too many attempts. Please try again later.";
+      case "auth/invalid-credential": return "Invalid email or password. Please check and try again.";
+      case "auth/network-request-failed": return "Network error. Check your connection.";
+      case "auth/popup-closed-by-user": return "Google sign-in was cancelled.";
+      case "auth/popup-blocked": return "Popup was blocked. Please allow popups and try again.";
+      default: return `Something went wrong (${code}). Please try again.`;
     }
   }
 
@@ -70,10 +98,15 @@ export default function Login() {
         .link-btn { background: none; border: none; color: #58a6ff; font-family: inherit; font-size: 13px; cursor: pointer; padding: 0; }
         .link-btn:hover { text-decoration: underline; }
         .show-btn { background: none; border: none; color: #8b949e; font-family: inherit; font-size: 12px; cursor: pointer; padding: 0; position: absolute; right: 14px; top: 50%; transform: translateY(-50%); }
+        .error-box { background: #f0626222; border: 1px solid #f0626244; border-radius: 8px; padding: 10px 14px; margin-bottom: 16px; font-size: 12px; color: #f06262; }
+        .success-box { background: #3fb95022; border: 1px solid #3fb95044; border-radius: 8px; padding: 14px; margin-bottom: 16px; font-size: 13px; color: #3fb950; text-align: center; line-height: 1.6; }
         @keyframes spin { to { transform: rotate(360deg); } }
         .spinner { width: 16px; height: 16px; border: 2px solid #ffffff44; border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; display: inline-block; }
+        @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+        .fade-in { animation: fadeIn 0.3s ease; }
       `}</style>
 
+      {/* Navbar */}
       <nav style={{ background: "#161b22", borderBottom: "1px solid #21262d", height: 56, display: "flex", alignItems: "center", padding: "0 24px" }}>
         <button onClick={() => navigate("/")} style={{ background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 8 }}>
           <span style={{ color: "#58a6ff", fontWeight: 700, fontSize: 18 }}>⬡</span>
@@ -83,51 +116,116 @@ export default function Login() {
 
       <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "40px 16px" }}>
         <div style={{ width: "100%", maxWidth: 420 }}>
-          <div style={{ textAlign: "center", marginBottom: 32 }}>
-            <div style={{ fontSize: 11, color: "#58a6ff", letterSpacing: "0.12em", marginBottom: 10, textTransform: "uppercase" }}>// auth.login()</div>
-            <h1 style={{ fontFamily: "'Space Grotesk',sans-serif", fontSize: 28, fontWeight: 800, marginBottom: 8 }}>Welcome back</h1>
-            <p style={{ fontSize: 13, color: "#8b949e" }}>Log in to continue your learning journey</p>
-          </div>
 
-          <div style={{ background: "#161b22", border: "1px solid #21262d", borderRadius: 14, padding: "32px 28px" }}>
-            <div style={{ display: "flex", gap: 10, marginBottom: 24 }}>
-              <button className="social-btn" onClick={handleGoogle} disabled={googleRedirecting}>
-                <span>G</span> {googleRedirecting ? "Redirecting..." : "Google"}
-              </button>
-              <button className="social-btn" disabled>
-                <span>⬡</span> GitHub
-              </button>
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
-              <div style={{ flex: 1, height: 1, background: "#21262d" }} />
-              <span style={{ fontSize: 11, color: "#484f58" }}>or continue with email</span>
-              <div style={{ flex: 1, height: 1, background: "#21262d" }} />
-            </div>
-            <form onSubmit={handleSubmit}>
-              <div style={{ marginBottom: 16 }}>
-                <label style={{ fontSize: 12, color: "#8b949e", display: "block", marginBottom: 6 }}>Email address</label>
-                <input className="input-field" type="email" name="email" placeholder="you@example.com" value={form.email} onChange={handleChange} />
+          {/* ── RESET PASSWORD MODE ── */}
+          {resetMode ? (
+            <div className="fade-in">
+              <div style={{ textAlign: "center", marginBottom: 28 }}>
+                <div style={{ fontSize: 11, color: "#f79d65", letterSpacing: "0.12em", marginBottom: 10, textTransform: "uppercase" }}>// auth.resetPassword()</div>
+                <h1 style={{ fontFamily: "'Space Grotesk',sans-serif", fontSize: 26, fontWeight: 800, marginBottom: 8 }}>Reset your password</h1>
+                <p style={{ fontSize: 13, color: "#8b949e" }}>We'll send a reset link to your email</p>
               </div>
-              <div style={{ marginBottom: 8 }}>
-                <label style={{ fontSize: 12, color: "#8b949e", display: "block", marginBottom: 6 }}>Password</label>
-                <div style={{ position: "relative" }}>
-                  <input className="input-field" type={showPass ? "text" : "password"} name="password" placeholder="••••••••" value={form.password} onChange={handleChange} style={{ paddingRight: 70 }} />
-                  <button type="button" className="show-btn" onClick={() => setShowPass(!showPass)}>{showPass ? "Hide" : "Show"}</button>
+              <div style={{ background: "#161b22", border: "1px solid #21262d", borderRadius: 14, padding: "32px 28px" }}>
+                {resetSent ? (
+                  <div className="fade-in">
+                    <div style={{ textAlign: "center", marginBottom: 20 }}>
+                      <div style={{ fontSize: 48, marginBottom: 12 }}>📧</div>
+                      <div className="success-box">
+                        Reset link sent to<br />
+                        <strong>{resetEmail}</strong><br />
+                        Check your inbox and spam folder.
+                      </div>
+                    </div>
+                    <button className="btn-primary" onClick={() => { setResetMode(false); setResetSent(false); setResetEmail(""); }}>
+                      ← Back to Login
+                    </button>
+                  </div>
+                ) : (
+                  <form onSubmit={handleResetPassword}>
+                    <div style={{ marginBottom: 16 }}>
+                      <label style={{ fontSize: 12, color: "#8b949e", display: "block", marginBottom: 6 }}>Email address</label>
+                      <input
+                        className="input-field"
+                        type="email"
+                        placeholder="you@example.com"
+                        value={resetEmail}
+                        onChange={e => { setResetEmail(e.target.value); setResetError(""); }}
+                      />
+                    </div>
+                    {resetError && <div className="error-box">⚠ {resetError}</div>}
+                    <button className="btn-primary" type="submit" disabled={resetLoading}>
+                      {resetLoading ? <span className="spinner" /> : "Send Reset Link →"}
+                    </button>
+                    <button type="button" onClick={() => { setResetMode(false); setResetError(""); }} style={{ width: "100%", background: "none", border: "none", color: "#8b949e", fontFamily: "inherit", fontSize: 12, cursor: "pointer", marginTop: 14, padding: "6px 0" }}>
+                      ← Back to Login
+                    </button>
+                  </form>
+                )}
+              </div>
+            </div>
+
+          ) : (
+
+            /* ── LOGIN MODE ── */
+            <div className="fade-in">
+              <div style={{ textAlign: "center", marginBottom: 32 }}>
+                <div style={{ fontSize: 11, color: "#58a6ff", letterSpacing: "0.12em", marginBottom: 10, textTransform: "uppercase" }}>// auth.login()</div>
+                <h1 style={{ fontFamily: "'Space Grotesk',sans-serif", fontSize: 28, fontWeight: 800, marginBottom: 8 }}>Welcome back</h1>
+                <p style={{ fontSize: 13, color: "#8b949e" }}>Log in to continue your learning journey</p>
+              </div>
+
+              <div style={{ background: "#161b22", border: "1px solid #21262d", borderRadius: 14, padding: "32px 28px" }}>
+                {/* Social buttons */}
+                <div style={{ display: "flex", gap: 10, marginBottom: 24 }}>
+                  <button className="social-btn" onClick={handleGoogle} disabled={googleLoading}>
+                    <span style={{ fontWeight: 700, color: "#4285f4" }}>G</span>
+                    {googleLoading ? "Signing in..." : "Google"}
+                  </button>
+                  <button className="social-btn" disabled style={{ opacity: 0.4, cursor: "not-allowed" }}>
+                    <span>⬡</span> GitHub
+                  </button>
                 </div>
+
+                <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
+                  <div style={{ flex: 1, height: 1, background: "#21262d" }} />
+                  <span style={{ fontSize: 11, color: "#484f58" }}>or continue with email</span>
+                  <div style={{ flex: 1, height: 1, background: "#21262d" }} />
+                </div>
+
+                <form onSubmit={handleSubmit}>
+                  <div style={{ marginBottom: 16 }}>
+                    <label style={{ fontSize: 12, color: "#8b949e", display: "block", marginBottom: 6 }}>Email address</label>
+                    <input className="input-field" type="email" name="email" placeholder="you@example.com" value={form.email} onChange={handleChange} />
+                  </div>
+                  <div style={{ marginBottom: 8 }}>
+                    <label style={{ fontSize: 12, color: "#8b949e", display: "block", marginBottom: 6 }}>Password</label>
+                    <div style={{ position: "relative" }}>
+                      <input className="input-field" type={showPass ? "text" : "password"} name="password" placeholder="••••••••" value={form.password} onChange={handleChange} style={{ paddingRight: 70 }} />
+                      <button type="button" className="show-btn" onClick={() => setShowPass(!showPass)}>{showPass ? "Hide" : "Show"}</button>
+                    </div>
+                  </div>
+
+                  {/* Forgot password link */}
+                  <div style={{ textAlign: "right", marginBottom: 20 }}>
+                    <button type="button" className="link-btn" style={{ fontSize: 12 }} onClick={() => { setResetMode(true); setResetEmail(form.email); setError(""); }}>
+                      Forgot password?
+                    </button>
+                  </div>
+
+                  {error && <div className="error-box">⚠ {error}</div>}
+
+                  <button className="btn-primary" type="submit" disabled={loading}>
+                    {loading ? <span className="spinner" /> : "Log In →"}
+                  </button>
+                </form>
+
+                <div style={{ height: 1, background: "#21262d", margin: "24px 0" }} />
+                <p style={{ textAlign: "center", fontSize: 13, color: "#8b949e" }}>
+                  Don't have an account? <button className="link-btn" onClick={() => navigate("/signup")}>Sign up free</button>
+                </p>
               </div>
-              <div style={{ textAlign: "right", marginBottom: 20 }}>
-                <button type="button" className="link-btn" style={{ fontSize: 12 }}>Forgot password?</button>
-              </div>
-              {error && <div style={{ background: "#f0626222", border: "1px solid #f0626244", borderRadius: 8, padding: "10px 14px", marginBottom: 16, fontSize: 12, color: "#f06262" }}>⚠ {error}</div>}
-              <button className="btn-primary" type="submit" disabled={loading}>
-                {loading ? <span className="spinner" /> : "Log In →"}
-              </button>
-            </form>
-            <div style={{ height: 1, background: "#21262d", margin: "24px 0" }} />
-            <p style={{ textAlign: "center", fontSize: 13, color: "#8b949e" }}>
-              Don't have an account? <button className="link-btn" onClick={() => navigate("/signup")}>Sign up free</button>
-            </p>
-          </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
