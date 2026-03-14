@@ -313,17 +313,17 @@ export default function Admin() {
               ))}
             </div>
 
-            {/* Stripe CTA */}
-            <div style={{ background: "linear-gradient(135deg,#635bff22,#635bff11)", border: "1px solid #635bff44", borderRadius: 12, padding: "24px", textAlign: "center" }}>
-              <div style={{ fontSize: 32, marginBottom: 10 }}>💳</div>
-              <h3 style={{ fontFamily: "'Space Grotesk',sans-serif", fontSize: 18, fontWeight: 800, marginBottom: 8 }}>Connect Stripe for real payments</h3>
+            {/* Lemon Squeezy CTA */}
+            <div style={{ background: "linear-gradient(135deg,#f9c23c22,#f9c23c11)", border: "1px solid #f9c23c44", borderRadius: 12, padding: "24px", textAlign: "center" }}>
+              <div style={{ fontSize: 32, marginBottom: 10 }}>🍋</div>
+              <h3 style={{ fontFamily: "'Space Grotesk',sans-serif", fontSize: 18, fontWeight: 800, marginBottom: 8 }}>Payments via Lemon Squeezy</h3>
               <p style={{ fontSize: 13, color: "#8b949e", marginBottom: 16, lineHeight: 1.7 }}>
-                Currently upgrades are simulated. Connect Stripe to start collecting real revenue from Pro subscribers.
+                Your checkout is powered by Lemon Squeezy. Manage subscriptions, refunds and invoices from your Lemon Squeezy dashboard.
               </p>
-              <button style={{ background: "#635bff", border: "none", color: "white", fontFamily: "inherit", fontSize: 14, fontWeight: 700, padding: "12px 28px", borderRadius: 8, cursor: "pointer" }}
-                onClick={() => navigate("/dashboard")}>
-                Set Up Stripe →
-              </button>
+              <a href="https://app.lemonsqueezy.com" target="_blank" rel="noreferrer"
+                style={{ display: "inline-block", background: "#f9c23c", border: "none", color: "#000", fontFamily: "inherit", fontSize: 14, fontWeight: 700, padding: "12px 28px", borderRadius: 8, cursor: "pointer", textDecoration: "none" }}>
+                Open Lemon Squeezy →
+              </a>
             </div>
           </div>
         )}

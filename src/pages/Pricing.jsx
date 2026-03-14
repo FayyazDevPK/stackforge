@@ -2,6 +2,9 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../AuthContext";
 
+const LS_MONTHLY = "https://devfayyaz.lemonsqueezy.com/checkout/buy/a5ed4d38-c397-4fba-803d-972ab4cefc51";
+const LS_ANNUAL = "https://devfayyaz.lemonsqueezy.com/checkout/buy/a910a2ef-4150-4f35-a4bc-2fcf6d803c70";
+
 const FREE_FEATURES = [
   "Phase 1 & 2 access (Foundations + Frontend)",
   "3 free projects with guides",
@@ -75,9 +78,10 @@ export default function Pricing() {
 
   // This actually upgrades the user's plan in auth state + localStorage
   async function activatePro() {
-    await upgradePro(); // saves plan:"pro" to Firestore
+    // Open Lemon Squeezy checkout in new tab
+    const checkoutUrl = annual ? LS_ANNUAL : LS_MONTHLY;
+    window.open(checkoutUrl, "_blank");
     setSuccessModal(false);
-    navigate("/dashboard");
   }
 
   const s = {
@@ -336,7 +340,7 @@ export default function Pricing() {
             <div style={{ fontSize: 52, marginBottom: 16 }}>🎉</div>
             <h2 style={{ fontFamily: "'Space Grotesk',sans-serif", fontSize: 24, fontWeight: 800, marginBottom: 8 }}>You're going Pro!</h2>
             <p style={{ fontSize: 13, color: "#8b949e", marginBottom: 24, lineHeight: 1.7 }}>
-              In production this would open Stripe checkout. For now your Pro plan is activated instantly.
+              You will be redirected to our secure checkout powered by Lemon Squeezy. After payment your Pro plan activates instantly.
             </p>
             <div style={{ background: "#0d1117", borderRadius: 10, padding: 16, marginBottom: 24, textAlign: "left" }}>
               <div style={{ fontSize: 12, color: "#8b949e", marginBottom: 8 }}>Order summary</div>
@@ -350,7 +354,7 @@ export default function Pricing() {
               style={{ background: "linear-gradient(135deg,#f79d65,#f06292)", border: "none", color: "white", fontFamily: "inherit", fontSize: 15, fontWeight: 700, padding: "14px", borderRadius: 10, cursor: "pointer", width: "100%" }}
               onClick={activatePro}
             >
-              ✦ Activate Pro & Go to Dashboard
+              ✦ Proceed to Checkout →
             </button>
             <p style={{ fontSize: 11, color: "#484f58", marginTop: 12 }}>Connect Stripe to accept real payments</p>
           </div>
