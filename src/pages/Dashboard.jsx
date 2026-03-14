@@ -5,8 +5,8 @@ import { useAuth } from "../AuthContext";
 const ADMIN_EMAIL = "fayyazliaquat70@gmail.com";
 
 const PHASES = [
-  { id: 1, phase: "01", title: "Foundations", color: "#4FC3F7", progress: 100, lessons: 12, done: 12, free: true },
-  { id: 2, phase: "02", title: "Frontend", color: "#81C784", progress: 60, lessons: 18, done: 11, free: true },
+  { id: 1, phase: "01", title: "Foundations", color: "#4FC3F7", progress: 0, lessons: 12, done: 0, free: true },
+  { id: 2, phase: "02", title: "Frontend", color: "#81C784", progress: 0, lessons: 18, done: 0, free: true },
   { id: 3, phase: "03", title: "Backend", color: "#FFB74D", progress: 0, lessons: 20, done: 0, free: false },
   { id: 4, phase: "04", title: "Full Stack", color: "#F06292", progress: 0, lessons: 16, done: 0, free: false },
   { id: 5, phase: "05", title: "Gen AI & LLMs", color: "#CE93D8", progress: 0, lessons: 14, done: 0, free: false },
@@ -14,15 +14,15 @@ const PHASES = [
 ];
 
 const RECENT_LESSONS = [
-  { id: 1, title: "React Hooks Deep Dive", phase: "Frontend", duration: "28 min", done: true, color: "#81C784" },
-  { id: 2, title: "useEffect & Async Patterns", phase: "Frontend", duration: "22 min", done: true, color: "#81C784" },
-  { id: 3, title: "React Router v6", phase: "Frontend", duration: "18 min", done: false, color: "#81C784" },
-  { id: 4, title: "State Management with Zustand", phase: "Frontend", duration: "32 min", done: false, color: "#81C784" },
+  { id: "1-1", title: "How the Web Works", phase: "Foundations", duration: "18 min", done: false, color: "#4FC3F7" },
+  { id: "1-2", title: "HTML5 Structure & Semantics", phase: "Foundations", duration: "24 min", done: false, color: "#4FC3F7" },
+  { id: "1-3", title: "CSS3 — Selectors & Box Model", phase: "Foundations", duration: "30 min", done: false, color: "#4FC3F7" },
+  { id: "2-1", title: "React 18 — Components & JSX", phase: "Frontend", duration: "35 min", done: false, color: "#81C784" },
 ];
 
 const ACTIVITY = [
-  { day: "Mon", mins: 45 }, { day: "Tue", mins: 30 }, { day: "Wed", mins: 90 },
-  { day: "Thu", mins: 20 }, { day: "Fri", mins: 60 }, { day: "Sat", mins: 75 }, { day: "Sun", mins: 10 },
+  { day: "Mon", mins: 0 }, { day: "Tue", mins: 0 }, { day: "Wed", mins: 0 },
+  { day: "Thu", mins: 0 }, { day: "Fri", mins: 0 }, { day: "Sat", mins: 0 }, { day: "Sun", mins: 0 },
 ];
 
 const ANNOUNCEMENTS = [
@@ -200,10 +200,10 @@ export default function Dashboard() {
           {/* Stats */}
           <div className="stats-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14, marginBottom: 24 }}>
             {[
-              { label: "Current Phase", value: "02", sub: "Frontend Dev", color: "#81C784", icon: "📍" },
-              { label: "Overall Progress", value: "27%", sub: "Phase 2 of 6", color: "#58a6ff", icon: "📈" },
-              { label: "Day Streak", value: "5 🔥", sub: "Keep it up!", color: "#f79d65", icon: "⚡" },
-              { label: "Lessons Done", value: "23", sub: "out of 90 total", color: "#CE93D8", icon: "✅" },
+              { label: "Current Phase", value: "01", sub: "Foundations", color: "#4FC3F7", icon: "📍" },
+              { label: "Overall Progress", value: "0%", sub: "Just getting started!", color: "#58a6ff", icon: "📈" },
+              { label: "Day Streak", value: "0 🔥", sub: "Start today!", color: "#f79d65", icon: "⚡" },
+              { label: "Lessons Done", value: "0", sub: "out of 90 total", color: "#CE93D8", icon: "✅" },
             ].map(s => (
               <div key={s.label} className="stat-card">
                 <div style={{ fontSize: 20, marginBottom: 8 }}>{s.icon}</div>
