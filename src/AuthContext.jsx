@@ -16,17 +16,17 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Listen to Firebase auth state changes
+  // Listen to Firebase auth state
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
-        // Get extra data (plan, goal etc) from Firestore
         const docRef = doc(db, "users", firebaseUser.uid);
         const docSnap = await getDoc(docRef);
         const extra = docSnap.exists() ? docSnap.data() : {};
         setUser({
           uid: firebaseUser.uid,
-          name: firebaseUser.displayName || extra.name || "Learner",
+          // Always prefer Firestore name over Firebase Auth displayName
+          name: extra.name || firebaseUser.displayName || "Learner",
           email: firebaseUser.email,
           plan: extra.plan || "free",
           goal: extra.goal || "",
@@ -39,24 +39,28 @@ export function AuthProvider({ children }) {
     return unsub;
   }, []);
 
-  // Save user doc to Firestore
-  async function saveUserDoc(firebaseUser, extra = {}) {
+  // Create user doc — only sets fields that don't exist yet (never overwrites)
+  async function createUserDocIfNew(firebaseUser, extra = {}) {
     const docRef = doc(db, "users", firebaseUser.uid);
     const docSnap = await getDoc(docRef);
-    const existing = docSnap.exists() ? docSnap.data() : {};
-    await setDoc(docRef, {
-      name: firebaseUser.displayName || extra.name || "Learner",
-      email: firebaseUser.email,
-      plan: existing.plan || "free", // never downgrade existing plan
-      goal: extra.goal || existing.goal || "",
-      createdAt: existing.createdAt || new Date().toISOString(),
-    }, { merge: true });
+
+    if (!docSnap.exists()) {
+      // Brand new user — create doc
+      await setDoc(docRef, {
+        name: extra.name || firebaseUser.displayName || "Learner",
+        email: firebaseUser.email,
+        plan: "free",
+        goal: extra.goal || "",
+        createdAt: new Date().toISOString(),
+      });
+    }
+    // Existing user — do NOT overwrite anything
   }
 
   // Email + password login
   async function login(email, password) {
     const result = await signInWithEmailAndPassword(auth, email, password);
-    await saveUserDoc(result.user);
+    await createUserDocIfNew(result.user);
     return result;
   }
 
@@ -74,14 +78,14 @@ export function AuthProvider({ children }) {
     return result;
   }
 
-  // Google login
+  // Google login — never overwrites existing profile data
   async function loginWithGoogle() {
     const result = await signInWithPopup(auth, googleProvider);
-    await saveUserDoc(result.user);
+    await createUserDocIfNew(result.user);
     return result;
   }
 
-  // Upgrade to Pro — saves to Firestore
+  // Upgrade to Pro
   async function upgradePro() {
     if (!user) return;
     const docRef = doc(db, "users", user.uid);
