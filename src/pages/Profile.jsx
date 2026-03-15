@@ -159,8 +159,13 @@ export default function Profile() {
         @media (max-width: 600px) {
           .form-row { grid-template-columns: 1fr !important; }
           .top-bar-pad { padding: 0 16px !important; }
-          .page-pad { padding: 20px 16px !important; }
+          .page-pad { padding: 16px !important; }
           .tab-scroll { overflow-x: auto; }
+          .profile-header { flex-direction: column !important; align-items: flex-start !important; }
+          .profile-header .pro-badge { margin-left: 0 !important; width: 100% !important; }
+        }
+        @media (max-width: 400px) {
+          .tab-btn { padding: 9px 12px !important; font-size: 12px !important; }
         }
         @keyframes spin { to { transform: rotate(360deg); } }
         .spinner { width: 14px; height: 14px; border: 2px solid #ffffff44; border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; display: inline-block; }
@@ -178,7 +183,7 @@ export default function Profile() {
       <div className="page-pad" style={{ padding: "28px 28px", maxWidth: 760, margin: "0 auto" }}>
 
         {/* Avatar + name */}
-        <div style={{ display: "flex", alignItems: "center", gap: 20, marginBottom: 32, flexWrap: "wrap" }}>
+        <div className="profile-header" style={{ display: "flex", alignItems: "center", gap: 20, marginBottom: 32, flexWrap: "wrap" }}>
           <div style={{ width: 72, height: 72, borderRadius: "50%", background: "linear-gradient(135deg,#58a6ff,#1f6feb)", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Space Grotesk',sans-serif", fontWeight: 800, fontSize: 28, flexShrink: 0 }}>
             {displayName.charAt(0).toUpperCase()}
           </div>

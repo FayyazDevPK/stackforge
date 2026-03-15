@@ -145,10 +145,16 @@ export default function Roadmap() {
         .topic-item:last-child { border-bottom: none; }
         .connector { width: 2px; height: 24px; background: linear-gradient(to bottom, #21262d, transparent); margin: 0 auto; }
         .pill { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
-        @media (max-width: 600px) {
+        @media (max-width: 768px) {
           .phase-header { flex-wrap: wrap; gap: 10px; }
-          .page-pad { padding: 20px 16px !important; }
+          .page-pad { padding: 16px !important; }
           .top-bar-pad { padding: 0 16px !important; }
+          .phase-progress { display: none !important; }
+          .phase-skills { display: none !important; }
+          .top-bar-right { display: none !important; }
+        }
+        @media (max-width: 480px) {
+          .phase-header { padding: 14px 14px !important; }
         }
       `}</style>
 

@@ -79,6 +79,10 @@ export default function Signup() {
         .social-btn { flex: 1; background: #161b22; border: 1px solid #30363d; color: #e6edf3; font-family: inherit; font-size: 13px; padding: 10px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
         .social-btn:hover { border-color: #58a6ff; }
         .social-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        @media (max-width: 480px) {
+          .auth-card { padding: 24px 16px !important; }
+          .social-btns { flex-direction: column !important; }
+        }
         .link-btn { background: none; border: none; color: #58a6ff; font-family: inherit; font-size: 13px; cursor: pointer; padding: 0; }
         .show-btn { background: none; border: none; color: #8b949e; font-family: inherit; font-size: 12px; cursor: pointer; padding: 0; position: absolute; right: 14px; top: 50%; transform: translateY(-50%); }
         .goal-btn { width: 100%; background: #0d1117; border: 1px solid #30363d; color: #8b949e; font-family: inherit; font-size: 13px; padding: 13px 16px; border-radius: 8px; cursor: pointer; text-align: left; transition: all 0.2s; }

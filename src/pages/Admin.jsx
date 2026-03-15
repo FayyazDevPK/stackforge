@@ -114,12 +114,17 @@ export default function Admin() {
         .modal { background: #161b22; border: 1px solid #30363d; border-radius: 14px; padding: 32px; max-width: 380px; width: 100%; text-align: center; }
         .toast { position: fixed; bottom: 24px; right: 24px; background: #238636; border: 1px solid #2ea043; color: white; padding: 12px 20px; border-radius: 8px; font-size: 13px; font-weight: 600; z-index: 300; }
         @media (max-width: 768px) {
-          .user-row { grid-template-columns: 1fr 100px !important; }
+          .user-row { grid-template-columns: 1fr 90px !important; }
           .user-email { display: none !important; }
           .user-date { display: none !important; }
-          .page-pad { padding: 20px 16px !important; }
+          .page-pad { padding: 16px !important; }
           .stats-grid { grid-template-columns: repeat(2,1fr) !important; }
-          .search-input { max-width: 100% !important; }
+          .search-input { max-width: 100% !important; width: 100% !important; }
+          .top-bar-actions { flex-direction: column !important; align-items: flex-start !important; gap: 8px !important; }
+          .overview-grid { grid-template-columns: 1fr !important; }
+        }
+        @media (max-width: 480px) {
+          .stats-grid { grid-template-columns: 1fr 1fr !important; }
         }
       `}</style>
 
@@ -182,7 +187,7 @@ export default function Admin() {
 
         {/* ── OVERVIEW TAB ── */}
         {tab === "overview" && (
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+          <div className="overview-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
             {/* Recent signups */}
             <div style={{ background: "#161b22", border: "1px solid #21262d", borderRadius: 12, padding: 20 }}>
               <h2 style={{ fontFamily: "'Space Grotesk',sans-serif", fontSize: 15, fontWeight: 700, marginBottom: 16 }}>Recent Signups</h2>

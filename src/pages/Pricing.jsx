@@ -119,8 +119,12 @@ export default function Pricing() {
           .plans-row { flex-direction: column !important; }
           .topbar-inner { padding: 0 16px !important; }
           .page-inner { padding: 28px 16px !important; }
-          .compare-row { grid-template-columns: 1fr 70px 70px !important; }
+          .compare-row { grid-template-columns: 1fr 60px 60px !important; font-size: 12px; }
           .tgrid { grid-template-columns: 1fr !important; }
+          .faq-q { font-size: 13px !important; }
+        }
+        @media (max-width: 480px) {
+          .compare-row { grid-template-columns: 1fr 50px 50px !important; }
         }
       `}</style>
 

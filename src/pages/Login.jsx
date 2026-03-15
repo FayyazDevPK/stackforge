@@ -95,6 +95,10 @@ export default function Login() {
         .social-btn { flex: 1; background: #161b22; border: 1px solid #30363d; color: #e6edf3; font-family: inherit; font-size: 13px; padding: 10px; border-radius: 8px; cursor: pointer; transition: border-color 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
         .social-btn:hover { border-color: #58a6ff; }
         .social-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        @media (max-width: 480px) {
+          .auth-card { padding: 24px 16px !important; }
+          .social-btns { flex-direction: column !important; }
+        }
         .link-btn { background: none; border: none; color: #58a6ff; font-family: inherit; font-size: 13px; cursor: pointer; padding: 0; }
         .link-btn:hover { text-decoration: underline; }
         .show-btn { background: none; border: none; color: #8b949e; font-family: inherit; font-size: 12px; cursor: pointer; padding: 0; position: absolute; right: 14px; top: 50%; transform: translateY(-50%); }

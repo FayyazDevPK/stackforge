@@ -79,6 +79,14 @@ export default function LessonPlayer() {
           .lesson-grid { grid-template-columns: 1fr !important; }
           .top-bar { padding: 0 16px !important; }
           .page-pad { padding: 16px !important; }
+          .lesson-title-bar { flex-wrap: wrap !important; gap: 8px !important; }
+          .tab-btn { padding: 8px 12px !important; font-size: 12px !important; }
+          .lesson-content h2 { font-size: 18px !important; }
+          .quiz-option { font-size: 12px !important; padding: 10px 12px !important; }
+          .code-body { font-size: 11px !important; }
+        }
+        @media (max-width: 480px) {
+          .tab-btn { padding: 8px 8px !important; font-size: 11px !important; }
         }
       `}</style>
 

@@ -160,6 +160,16 @@ export default function Community() {
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
         .live { width: 7px; height: 7px; border-radius: 50%; background: #3fb950; display: inline-block; animation: pulse 2s infinite; }
         @media (max-width: 768px) {
+          .stats-grid { grid-template-columns: repeat(2,1fr) !important; }
+          .filter-bar { flex-direction: column !important; }
+          .filter-bar input { width: 100% !important; max-width: 100% !important; }
+          .post-meta { flex-wrap: wrap !important; }
+          .page-pad { padding: 16px !important; }
+          .top-bar { padding: 0 16px !important; }
+          .modal { padding: 20px !important; }
+        }
+        @media (max-width: 480px) {
+          .stats-grid { grid-template-columns: 1fr 1fr !important; }
           .top-bar-pad { padding: 0 16px !important; }
           .page-pad { padding: 20px 16px !important; }
           .stats-grid { grid-template-columns: repeat(2,1fr) !important; }
