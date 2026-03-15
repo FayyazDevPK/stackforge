@@ -69,6 +69,10 @@ export default function LessonPlayer() {
         .code-block { background: #161b22; border: 1px solid #21262d; border-radius: 10px; overflow: hidden; margin: 16px 0; }
         .code-header { padding: 10px 16px; background: #1c2128; border-bottom: 1px solid #21262d; display: flex; align-items: center; justify-content: space-between; }
         .code-body { padding: 16px; overflow-x: auto; font-size: 13px; line-height: 1.7; color: #e6edf3; white-space: pre; }
+        .hide-mobile { display: inline !important; }
+        @media (max-width: 480px) {
+          .hide-mobile { display: none !important; }
+        }
         .quiz-option { width: 100%; background: #0d1117; border: 1px solid #21262d; border-radius: 8px; padding: 12px 16px; color: #c9d1d9; font-family: inherit; font-size: 13px; cursor: pointer; text-align: left; transition: all 0.2s; margin-bottom: 8px; }
         .quiz-option:hover { border-color: #58a6ff44; }
         .quiz-option.selected { border-color: #58a6ff; color: #58a6ff; background: #58a6ff11; }
@@ -91,19 +95,21 @@ export default function LessonPlayer() {
       `}</style>
 
       {/* Top Bar */}
-      <div className="top-bar" style={{ background: "#161b22", borderBottom: "1px solid #21262d", height: 56, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 28px", position: "sticky", top: 0, zIndex: 100 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-          <button onClick={() => navigate("/courses")} style={{ background: "none", border: "none", color: "#8b949e", fontFamily: "inherit", fontSize: 13, cursor: "pointer" }}>← Courses</button>
-          <span style={{ color: "#30363d" }}>|</span>
-          <span style={{ fontSize: 12, color: lesson.phaseColor, fontWeight: 700 }}>Phase {lesson.phase}</span>
-          <span style={{ color: "#30363d" }}>›</span>
-          <span style={{ fontSize: 13, color: "#e6edf3", fontWeight: 600 }}>{lesson.title}</span>
+      <div className="top-bar" style={{ background: "#161b22", borderBottom: "1px solid #21262d", height: 56, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 16px", position: "sticky", top: 0, zIndex: 100, gap: 8 }}>
+        {/* Left — back + phase only, hide title on mobile */}
+        <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0, overflow: "hidden", flexShrink: 1 }}>
+          <button onClick={() => navigate("/courses")} style={{ background: "none", border: "none", color: "#8b949e", fontFamily: "inherit", fontSize: 12, cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0 }}>← Courses</button>
+          <span style={{ color: "#30363d", flexShrink: 0 }}>|</span>
+          <span style={{ fontSize: 11, color: lesson.phaseColor, fontWeight: 700, whiteSpace: "nowrap", flexShrink: 0 }}>Phase {lesson.phase}</span>
+          <span style={{ color: "#30363d", flexShrink: 0 }} className="hide-mobile">›</span>
+          <span style={{ fontSize: 12, color: "#e6edf3", fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} className="hide-mobile">{lesson.title}</span>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <span style={{ fontSize: 12, color: "#8b949e" }}>⏱ {lesson.duration}</span>
+        {/* Right — duration + mark complete */}
+        <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+          <span style={{ fontSize: 11, color: "#8b949e", whiteSpace: "nowrap" }} className="hide-mobile">⏱ {lesson.duration}</span>
           {lessonDone
-            ? <span style={{ fontSize: 12, background: "#3fb95022", color: "#3fb950", border: "1px solid #3fb95033", padding: "4px 12px", borderRadius: 20, fontWeight: 700 }}>✓ Complete</span>
-            : <button onClick={handleMarkDone} style={{ background: "linear-gradient(135deg,#58a6ff,#1f6feb)", border: "none", color: "white", fontFamily: "inherit", fontSize: 12, fontWeight: 700, padding: "6px 16px", borderRadius: 6, cursor: "pointer" }}>Mark Complete</button>
+            ? <span style={{ fontSize: 11, background: "#3fb95022", color: "#3fb950", border: "1px solid #3fb95033", padding: "4px 10px", borderRadius: 20, fontWeight: 700, whiteSpace: "nowrap" }}>✓ Done</span>
+            : <button onClick={handleMarkDone} style={{ background: "linear-gradient(135deg,#58a6ff,#1f6feb)", border: "none", color: "white", fontFamily: "inherit", fontSize: 11, fontWeight: 700, padding: "6px 12px", borderRadius: 6, cursor: "pointer", whiteSpace: "nowrap" }}>✓ Mark Done</button>
           }
         </div>
       </div>
