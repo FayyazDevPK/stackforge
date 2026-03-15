@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../AuthContext";
 
@@ -134,6 +134,17 @@ export default function Courses() {
   const isPro = user?.plan === "pro";
 
   const [expanded, setExpanded] = useState(1);
+  const lessonSectionRef = useRef(null);
+
+  function handlePhaseClick(phaseId) {
+    setExpanded(phaseId);
+    // Auto-scroll to lesson section on mobile
+    setTimeout(() => {
+      if (window.innerWidth <= 768 && lessonSectionRef.current) {
+        lessonSectionRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }, 50);
+  }
 
   function isUnlocked(phase) {
     return phase.free || isPro;
@@ -225,7 +236,7 @@ export default function Courses() {
                   key={phase.id}
                   className={`phase-tab${expanded === phase.id ? " active" : ""}`}
                   style={{ "--phase-color": phase.color, borderLeftWidth: 3, borderLeftColor: phase.color, opacity: unlocked ? 1 : 0.7 }}
-                  onClick={() => setExpanded(phase.id)}
+                  onClick={() => handlePhaseClick(phase.id)}
                 >
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -246,6 +257,7 @@ export default function Courses() {
           </div>
 
           {/* Right — Lessons */}
+          <div ref={lessonSectionRef} />
           {(() => {
             const phase = PHASES.find(p => p.id === expanded);
             if (!phase) return null;

@@ -176,11 +176,11 @@ export default function Dashboard() {
         <div className="top-bar" style={{ background: "#161b22", borderBottom: "1px solid #21262d", height: 56, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 28px", position: "sticky", top: 0, zIndex: 100 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <button className="hamburger" onClick={() => setSidebarOpen(!sidebarOpen)}><span /><span /><span /></button>
-            <span style={{ fontSize: 13, color: "#e6edf3" }}>Good morning, <strong>{displayName}</strong> 👋</span>
+            <span style={{ fontSize: 13, color: "#e6edf3", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 180 }}>Hi, <strong>{displayName.split(" ")[0]}</strong> 👋</span>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0, overflow: "hidden" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "#8b949e" }}>
-              <span className="live" style={{ width: 7, height: 7, borderRadius: "50%", background: "#3fb950", display: "inline-block" }} />
+            <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "#8b949e", whiteSpace: "nowrap", flexShrink: 0 }}>
+              <span className="live" style={{ width: 6, height: 6, borderRadius: "50%", background: "#3fb950", display: "inline-block" }} />
               1 online
             </div>
             <div onClick={() => navigate("/profile")} title="Profile & Settings"
@@ -217,8 +217,8 @@ export default function Dashboard() {
           {/* Phases */}
           <div style={{ background: "#161b22", border: "1px solid #21262d", borderRadius: 12, padding: "20px", marginBottom: 24 }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18 }}>
-              <h2 style={{ fontFamily: "'Space Grotesk',sans-serif", fontSize: 16, fontWeight: 700 }}>Roadmap Progress</h2>
-              <button className="btn-primary" onClick={() => navigate("/courses")}>Continue Learning →</button>
+              <h2 style={{ fontFamily: "'Space Grotesk',sans-serif", fontSize: 15, fontWeight: 700, whiteSpace: "nowrap" }}>Roadmap Progress</h2>
+              <button className="btn-primary" style={{ whiteSpace: "nowrap", flexShrink: 0 }} onClick={() => navigate("/courses")}>Continue →</button>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               {PHASES.map(p => (
