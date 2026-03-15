@@ -156,27 +156,32 @@ export default function Courses() {
         .phase-tab { background: #161b22; border: 1px solid #21262d; border-radius: 10px; padding: 16px 18px; cursor: pointer; transition: all 0.2s; }
         .phase-tab:hover { border-color: #30363d; }
         .phase-tab.active { border-color: var(--phase-color); background: #161b22; }
-        .lesson-row { display: flex; align-items: center; gap: 12px; padding: 11px 16px; border-bottom: 1px solid #21262d; transition: background 0.15s; cursor: pointer; }
+        .lesson-row { display: flex; align-items: center; gap: 8px; padding: 11px 12px; border-bottom: 1px solid #21262d; transition: background 0.15s; cursor: pointer; }
         .lesson-row:last-child { border-bottom: none; }
         .lesson-row:hover { background: #1c2128; }
         .lesson-row.locked { opacity: 0.45; cursor: default; }
         @media (max-width: 768px) {
-          .top-bar { padding: 0 16px !important; }
-          .page-pad { padding: 20px 16px !important; }
+          .top-bar { padding: 0 12px !important; }
+          .page-pad { padding: 16px !important; }
           .main-grid { grid-template-columns: 1fr !important; }
+          .lesson-row { padding: 10px 10px !important; gap: 6px !important; }
+          .lesson-row > div:first-child { display: none !important; }
+        }
+        @media (max-width: 480px) {
+          .lesson-row { padding: 8px !important; }
         }
       `}</style>
 
       {/* Top Bar */}
       <div className="top-bar" style={{ background: "#161b22", borderBottom: "1px solid #21262d", height: 56, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 28px", position: "sticky", top: 0, zIndex: 100 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0, overflow: "hidden" }}>
           <button className="back-btn" onClick={() => navigate("/dashboard")}>← Dashboard</button>
           <span style={{ color: "#30363d" }}>|</span>
-          <span style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 700, fontSize: 15 }}>Courses</span>
+          <span style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 700, fontSize: 15, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>Courses</span>
         </div>
         {isPro
           ? <span style={{ fontSize: 12, background: "#3fb95022", color: "#3fb950", border: "1px solid #3fb95033", padding: "4px 12px", borderRadius: 20, fontWeight: 700 }}>✦ Pro Active</span>
-          : <button style={{ background: "linear-gradient(135deg,#f79d65,#f06292)", border: "none", color: "white", fontFamily: "inherit", fontSize: 12, fontWeight: 700, padding: "7px 16px", borderRadius: 6, cursor: "pointer" }} onClick={() => navigate("/pricing")}>✦ Upgrade to Pro</button>
+          : <button style={{ background: "linear-gradient(135deg,#f79d65,#f06292)", border: "none", color: "white", fontFamily: "inherit", fontSize: 11, fontWeight: 700, padding: "6px 10px", borderRadius: 6, cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0 }} onClick={() => navigate("/pricing")}>✦ Pro</button>
         }
       </div>
 
@@ -313,7 +318,7 @@ export default function Courses() {
 
                         {/* Title */}
                         <div style={{ flex: 1 }}>
-                          <div style={{ fontSize: 13, color: lesson.done ? "#8b949e" : "#e6edf3", textDecoration: lesson.done ? "line-through" : "none" }}>{lesson.title}</div>
+                          <div style={{ fontSize: 12, color: lesson.done ? "#8b949e" : "#e6edf3", textDecoration: lesson.done ? "line-through" : "none", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{lesson.title}</div>
                         </div>
 
                         {/* Duration + start */}

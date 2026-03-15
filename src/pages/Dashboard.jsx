@@ -178,7 +178,7 @@ export default function Dashboard() {
             <button className="hamburger" onClick={() => setSidebarOpen(!sidebarOpen)}><span /><span /><span /></button>
             <span style={{ fontSize: 13, color: "#e6edf3" }}>Good morning, <strong>{displayName}</strong> 👋</span>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0, overflow: "hidden" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "#8b949e" }}>
               <span className="live" style={{ width: 7, height: 7, borderRadius: "50%", background: "#3fb950", display: "inline-block" }} />
               1 online

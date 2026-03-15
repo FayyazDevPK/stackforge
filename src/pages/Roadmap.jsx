@@ -160,14 +160,14 @@ export default function Roadmap() {
 
       {/* Top Bar */}
       <div className="top-bar-pad" style={{ background: "#161b22", borderBottom: "1px solid #21262d", height: 56, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 28px", position: "sticky", top: 0, zIndex: 100 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0, overflow: "hidden" }}>
           <button className="back-btn" onClick={() => navigate("/dashboard")}>← Dashboard</button>
           <span style={{ color: "#30363d" }}>|</span>
           <span style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 700, fontSize: 15 }}>Roadmap</span>
         </div>
         {isPro
           ? <span style={{ fontSize: 12, background: "#3fb95022", color: "#3fb950", border: "1px solid #3fb95033", padding: "4px 12px", borderRadius: 20, fontWeight: 700 }}>✦ Pro Active</span>
-          : <button style={{ background: "linear-gradient(135deg,#f79d65,#f06292)", border: "none", color: "white", fontFamily: "inherit", fontSize: 12, fontWeight: 700, padding: "7px 16px", borderRadius: 6, cursor: "pointer" }} onClick={() => navigate("/pricing")}>✦ Upgrade to Pro</button>
+          : <button style={{ background: "linear-gradient(135deg,#f79d65,#f06292)", border: "none", color: "white", fontFamily: "inherit", fontSize: 11, fontWeight: 700, padding: "6px 10px", borderRadius: 6, cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0 }} onClick={() => navigate("/pricing")}>✦ Pro</button>
         }
       </div>
 
